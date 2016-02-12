@@ -1,2 +1,2 @@
-# c-to-mips
-Translate C to MIPS with OCaml
+# C to MIPS
+Translate C to MIPS with OCaml.
