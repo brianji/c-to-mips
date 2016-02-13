@@ -4,6 +4,8 @@
   exception SyntaxError of string
 }
 
+  let white = [' ' '\t' '\n']+
+  let word = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
   let digit = ['0'-'9']
   let frac = '.' digit*
   let exp = ['e' 'E'] ['-' '+']? digit+
@@ -20,8 +22,6 @@
   let bit = '&' | '|' | '^' | '~' | "<<" | ">>"
   let op = ((arith | bit) '='?) | comp | logic | '=' |"++" | "--" | '~'
 
-  let white = [' ' '\t' '\n']+
-  let id = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9' '_']*
 
   rule read = parse
     | white         { read lexbuf }
@@ -46,13 +46,19 @@
 
     (* operators *)
     | op as lxm {
-        try Hashtbl.find Operators.table id (* check if keyword *)
-        with Not_found -> raise (SyntaxError ("Operator not found: " ^ lxm)
+        try Hashtbl.find Operators.table lxm (* check if keyword *)
+        with Not_found -> raise (SyntaxError ("Invalid operator: " ^ lxm))
       }
 
-    (* identifiers *)
-    | id as lxm {
-        try Hashtbl.find Keywords.table id (* check if keyword *)
+    (* directives *)
+    | ('#' word) as lxm {
+        try Hashtbl.find Directives.table lxm (* check if keyword *)
+        with Not_found -> raise (SyntaxError ("Invalid directive: " ^ lxm))
+      }
+
+    (* keywords and identifiers *)
+    | word as lxm {
+        try Hashtbl.find Keywords.table lxm (* check if keyword *)
         with Not_found -> ID lxm
       }
 
