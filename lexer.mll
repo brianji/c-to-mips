@@ -22,7 +22,6 @@
   let bit = '&' | '|' | '^' | '~' | "<<" | ">>"
   let op = ((arith | bit) '='?) | comp | logic | '=' |"++" | "--" | '~'
 
-
   rule read = parse
     | white         { read lexbuf }
 
