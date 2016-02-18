@@ -20,7 +20,7 @@ let arith = '+' | '-' | '*' | '/' | '%'
 let comp = '<' | '>' | "==" | "!=" | ">=" | "<="
 let logic = '!' | "&&" | "||"
 let bit = '&' | '|' | '^' | '~' | "<<" | ">>"
-let op = ((arith | bit) '='?) | comp | logic | '=' |"++" | "--" | '~'
+let op = ((arith | bit) '='?) | comp | logic | '=' | "++" | "--" | '~'
 
 rule read = parse
   | white { read lexbuf }
