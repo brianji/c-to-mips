@@ -1,4 +1,5 @@
-type prog = statement list
+type prog = int list (* TODO *)
+(* type prog = statement list
 
 and statement =
   | Dec of prim * (var list)
@@ -28,4 +29,4 @@ and inop =
   | Asgmt
 and endop =
   | Incrmt
-  | Decrmt
+  | Decrmt *)
