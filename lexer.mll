@@ -61,5 +61,15 @@
         with Not_found -> ID lxm
       }
 
+    (* comments *)
+    | "//" { singleline_comment lexbuf }
+    | "/*" { multiline_comment lexbuf }
+
     | _ as lxm      { raise (SyntaxError ("Unexpected char: " ^ lxm)) }
     | eof           { EOF }
+  and singleline_comment = parse
+    | "\n"  { read lexbuf }
+    | _     { singleline_comment lexbuf }
+  and multiline_comment = parse
+    | "*/"  { read lexbuf }
+    | _     { multiline_comment lexbuf }
