@@ -1,5 +1,4 @@
 %{
-    open Ast
 %}
 /* values */
 %token <int> INT_VAL
@@ -109,8 +108,8 @@
 %token EOF
 
 %start main
-%type <Ast.prog> main
+%type <unit> main
 %%
 main:
-  | EOF { [] }
+  | EOF {}
   ;
