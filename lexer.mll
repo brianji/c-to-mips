@@ -65,7 +65,7 @@ rule read = parse
   | "//" { singleline_comment lexbuf }
   | "/*" { multiline_comment lexbuf }
 
-  | _ as lxm { raise (SyntaxError ("Unexpected char: " ^ lxm)) }
+  | _ as lxm { raise (SyntaxError ("Unexpected char: " ^ String.make 1 lxm)) }
   | eof { EOF }
 and singleline_comment = parse
   | "\n" { read lexbuf }
