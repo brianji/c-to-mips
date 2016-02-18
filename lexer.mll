@@ -23,25 +23,25 @@ let bit = '&' | '|' | '^' | '~' | "<<" | ">>"
 let op = ((arith | bit) '='?) | comp | logic | '=' |"++" | "--" | '~'
 
 rule read = parse
-  | white         { read lexbuf }
+  | white { read lexbuf }
 
   (* values *)
-  | int as lxm    { INT_VAL (int_of_string lxm) }
-  | float as lxm  { FLOAT_VAL (float_of_string lxm) }
-  | char as lxm   { CHAR_VAL (String.get lxm 1) }
-  | "NULL"        { NULL }
+  | int as lxm { INT_VAL (int_of_string lxm) }
+  | float as lxm { FLOAT_VAL (float_of_string lxm) }
+  | char as lxm { CHAR_VAL (String.get lxm 1) }
+  | "NULL" { NULL }
 
   (* separators *)
-  | '{'           { LEFT_BRACE }
-  | '}'           { RIGHT_BRACE }
-  | '('           { LEFT_PAREN }
-  | ')'           { RIGHT_PAREN }
-  | '['           { LEFT_BRACK }
-  | ']'           { RIGHT_BRACK }
-  | ';'           { SEMICOLON }
-  | ','           { COMMA }
-  | ':'           { COLON }
-  | '?'           { QUERY }
+  | '{' { LEFT_BRACE }
+  | '}' { RIGHT_BRACE }
+  | '(' { LEFT_PAREN }
+  | ')' { RIGHT_PAREN }
+  | '[' { LEFT_BRACK }
+  | ']' { RIGHT_BRACK }
+  | ';' { SEMICOLON }
+  | ',' { COMMA }
+  | ':' { COLON }
+  | '?' { QUERY }
 
   (* operators *)
   | op as lxm {
@@ -65,11 +65,11 @@ rule read = parse
   | "//" { singleline_comment lexbuf }
   | "/*" { multiline_comment lexbuf }
 
-  | _ as lxm      { raise (SyntaxError ("Unexpected char: " ^ lxm)) }
-  | eof           { EOF }
+  | _ as lxm { raise (SyntaxError ("Unexpected char: " ^ lxm)) }
+  | eof { EOF }
 and singleline_comment = parse
-  | "\n"  { read lexbuf }
-  | _     { singleline_comment lexbuf }
+  | "\n" { read lexbuf }
+  | _ { singleline_comment lexbuf }
 and multiline_comment = parse
-  | "*/"  { read lexbuf }
-  | _     { multiline_comment lexbuf }
+  | "*/" { read lexbuf }
+  | _ { multiline_comment lexbuf }
