@@ -12,10 +12,8 @@ default:
 	$(CC) -o $(BUILDDIR)/directives -c $(SOURCEDIR)/directives.ml
 	$(CC) -o $(BUILDDIR)/keywords -c $(SOURCEDIR)/keywords.ml
 	$(CC) -o $(BUILDDIR)/lexer -c $(BUILDDIR)/lexer.ml
-	$(CC) -o $(BUILDDIR)/print -c $(SOURCEDIR)/print.ml
 	$(CC) -o $(BUILDDIR)/pretty_print -c $(SOURCEDIR)/pretty_print.ml
 	$(CC) -o pretty_print operators.cmo directives.cmo keywords.cmo lexer.cmo parser.cmo pretty_print.cmo
-	$(CC) -o print operators.cmo directives.cmo keywords.cmo lexer.cmo print.cmo
 clean:
 	@echo "Cleaning $(BUILDDIR) and executables"
 	@rm $(BUILDDIR)/* pretty_print print
