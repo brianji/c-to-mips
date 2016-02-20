@@ -3,5 +3,4 @@
 print
 test
 build/*
-
-! build/.keep
+!build/.keep
