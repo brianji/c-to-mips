@@ -1,2 +1,7 @@
-.merlin
 .atom-build.json
+.merlin
+print
+test
+build/*
+
+! build/.keep
