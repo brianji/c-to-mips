@@ -1,4 +1,5 @@
 %{
+  open Ast
 %}
 /* values */
 %token <int> INT_VAL
@@ -108,8 +109,27 @@
 %token EOF
 
 %start main
-%type <unit> main
+%type <Ast.func> main
 %%
 main:
-  | EOF {}
+  | func EOF { $1 }
+  ;
+func:
+  | return ID LEFT_PAREN params RIGHT_PAREN LEFT_BRACE statements RIGHT_BRACE
+      { ($1, $2, $4, $7) }
+  ;
+return:
+  | VOID { Void }
+  | prim { Prim $1 }
+  ;
+params:
+  | { [] }
+  | prim ID { [$1, $2] }
+  | prim ID COMMA params { ($1, $2) :: $4 }
+  ;
+statements: { [] } ;
+prim:
+  | CHAR { Char }
+  | INT { Int }
+  | FLOAT { Float }
   ;
