@@ -38,7 +38,7 @@ let print_function f =
   print_newline ();
   print_statements;
   print_string "}";
-  print_newline()
+  print_newline ()
 
 let _ =
   let lexbuf = Lexing.from_channel stdin in
