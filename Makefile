@@ -16,4 +16,4 @@ default:
 	$(CC) -o pretty_print operators.cmo directives.cmo keywords.cmo lexer.cmo parser.cmo pretty_print.cmo
 clean:
 	@echo "Cleaning $(BUILDDIR) and executables"
-	@rm $(BUILDDIR)/* pretty_print print
+	@rm $(BUILDDIR)/* pretty_print
