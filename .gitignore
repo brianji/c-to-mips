@@ -1,6 +1,5 @@
 .atom-build.json
 .merlin
-print
 pretty_print
 build/*
 !build/.keep
