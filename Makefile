@@ -1,5 +1,9 @@
+SOURCEDIR = src
+BUILDDIR = build
+
 default:
-	ocamllex lexer.mll       # generates lexer.ml
+	ocamllex -o $(BUILDDIR)/lexer.ml $(SOURCEDIR)/lexer.mll # generates lexer.ml
 
 clean:
-	-rm ubik *cmi *cmo *~ parser.mli lexer.ml parser.ml
+	@echo "Cleaning $(BUILDDIR)"
+	@rm $(BUILDDIR)/*
