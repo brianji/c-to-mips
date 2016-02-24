@@ -127,7 +127,27 @@ params:
   | prim ID { [$1, $2] }
   | prim ID COMMA params { ($1, $2) :: $4 }
   ;
-statements: { [] } ;
+statements:
+  | { [] }
+  | statement statements { $1 :: $2 }
+  ;
+statement:
+  | decl { $1 }
+  ;
+decl:
+  | prim dec_exprs SEMICOLON { Dec ($1, $2) }
+  ;
+dec_exprs:
+  | { [] }
+  | dec_expr { [$1] }
+  | dec_expr COMMA dec_exprs { $1 :: $3}
+  ;
+dec_expr:
+  | ID { DecVar $1 }
+  | ID ASSIGN expr { InitVar ($1, $3) }
+  ;
+expr: { Value (Integer 0) }
+  ;
 prim:
   | CHAR { Char }
   | INT { Int }

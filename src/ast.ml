@@ -9,9 +9,11 @@ and prim =
   | Char
 and param = prim * id
 and statement =
-  | Dec of prim * (var list)
-  | Init of prim * ((var * expr) list)
   | Expr of expr
+  | Dec of prim * (dec_expr list)
+and dec_expr =
+  | DecVar of id
+  | InitVar of id * expr
 and expr =
   | Var of var
   | Value of value
