@@ -1,6 +1,8 @@
 open Ast
 open To_string
 
+let tail l = try List.tl l with Failure _ -> []
+
 let print_param (prim, id) =
     print_string (prim_string prim);
     print_string " ";
@@ -9,14 +11,9 @@ let print_param (prim, id) =
 let print_params params =
   let aux a p =
     print_param p;
-    match a with
-    | [] -> []
-    | _ :: t ->
-      print_string ", ";
-      t
+    tail a
   in
-  let tail = try List.tl params with Failure _ -> [] in
-  let _ = List.fold_left aux tail params in
+  let _ = List.fold_left aux (tail params) params in
   ()
 
 let print_dec_expr = function
@@ -31,14 +28,9 @@ let print_dec (p, l) =
   print_string " ";
   let aux a dec =
     print_dec_expr dec;
-    match a with
-    | [] -> []
-    | _ :: t ->
-      print_string ", ";
-      t
+    tail a
   in
-  let tail = try List.tl l with Failure _ -> [] in
-  let _ = List.fold_left aux tail l in
+  let _ = List.fold_left aux (tail l) l in
   print_string ";";
   print_newline ()
 
