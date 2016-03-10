@@ -11,8 +11,6 @@ let return_string = function
 
 let param_string = function (prim, id) -> (prim_string prim) ^ " " ^ id
 
-let var_string = function (id, _) -> id
-
 let inop_string = function
   | Plus -> "+"
   | Minus -> "-"
