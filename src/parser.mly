@@ -149,9 +149,17 @@ dec_expr:
 expr:
   | var { Var $1 }
   | value { Value $1 }
+  | infix { $1 }
   | prefix { $1 }
   | postfix { $1 }
   ;
+infix: expr inop expr { Infix ($1, $2, $3) };
+inop:
+  | PLUS { Plus }
+  | MINUS { Minus }
+  | TIMES { Times }
+  | DIVIDE { Divide }
+  | MOD { Mod }
 prefix:
   | INC var { Prefix (Incrmt, $2) }
   | DEC var { Prefix (Decrmt, $2) }

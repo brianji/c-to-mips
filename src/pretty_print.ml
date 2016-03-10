@@ -33,16 +33,24 @@ let print_dec (p, l) =
   print_string ";";
   print_newline ()
 
-let print_exp = function
+let print_inop i =
+  print_string " ";
+  print_string (inop_string i);
+  print_string " "
+
+let rec print_exp = function
   | Var v -> print_string v
   | Value v -> print_string (value_string v)
+  | Infix (e1, i, e2) ->
+    print_exp e1;
+    print_inop i;
+    print_exp e2
   | Prefix (e, id) ->
     print_string (endop_string e);
     print_string id
   | Postfix (id, e) ->
     print_string id;
     print_string (endop_string e)
-  | _ -> print_string "NOT_PRINTABLE;\n"
 
 let print_statement = function
   | Dec (p, l) -> print_dec (p, l)
