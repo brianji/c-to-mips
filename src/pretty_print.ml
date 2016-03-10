@@ -13,8 +13,7 @@ let print_params params =
     print_param p;
     tail a
   in
-  let _ = List.fold_left aux (tail params) params in
-  ()
+  let _ = List.fold_left aux (tail params) params in ()
 
 let print_dec_expr = function
   | DecVar id -> print_string id
@@ -34,9 +33,23 @@ let print_dec (p, l) =
   print_string ";";
   print_newline ()
 
+let print_exp = function
+  | Var v -> print_string v
+  | Value v -> print_string (value_string v)
+  | Prefix (e, id) ->
+    print_string (endop_string e);
+    print_string id
+  | Postfix (id, e) ->
+    print_string id;
+    print_string (endop_string e)
+  | _ -> print_string "NOT_PRINTABLE;\n"
+
 let print_statement = function
   | Dec (p, l) -> print_dec (p, l)
-  | _ -> print_string "other"
+  | Expr e ->
+    print_exp e;
+    print_string ";";
+    print_newline ()
 
 let print_statements statements =
   let aux _ statement = print_statement statement in

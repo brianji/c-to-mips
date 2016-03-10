@@ -111,8 +111,7 @@
 %start main
 %type <Ast.func> main
 %%
-main:
-  | func EOF { $1 }
+main: func EOF { $1 }
   ;
 func:
   | return ID LEFT_PAREN params RIGHT_PAREN LEFT_BRACE statements RIGHT_BRACE
@@ -133,6 +132,7 @@ statements:
   ;
 statement:
   | decl { $1 }
+  | expr SEMICOLON { Expr $1 }
   ;
 decl:
   | prim dec_exprs SEMICOLON { Dec ($1, $2) }
@@ -146,10 +146,29 @@ dec_expr:
   | ID { DecVar $1 }
   | ID ASSIGN expr { InitVar ($1, $3) }
   ;
-expr: { Value (Integer 0) }
+expr:
+  | var { Var $1 }
+  | value { Value $1 }
+  | prefix { $1 }
+  | postfix { $1 }
+  ;
+prefix:
+  | INC var { Prefix (Incrmt, $2) }
+  | DEC var { Prefix (Decrmt, $2) }
+  ;
+postfix:
+  | var INC { Postfix ($1, Incrmt) }
+  | var DEC { Postfix ($1, Decrmt) }
+  ;
+var: ID { $1 }
   ;
 prim:
   | CHAR { Char }
   | INT { Int }
   | FLOAT { Float }
+  ;
+value:
+  | INT_VAL { Integer $1 }
+  | FLOAT_VAL { Decimal $1 }
+  | CHAR_VAL { Letter $1 }
   ;

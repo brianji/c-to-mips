@@ -15,11 +15,11 @@ and dec_expr =
   | DecVar of id
   | InitVar of id * expr
 and expr =
-  | Var of var
+  | Var of id
   | Value of value
   | Infix of expr * inop * expr
-  | Prefix of endop * expr
-  | Postfix of expr * endop
+  | Prefix of endop * id
+  | Postfix of id * endop
 and inop =
   | Plus
   | Minus
@@ -30,7 +30,6 @@ and inop =
 and endop =
   | Incrmt
   | Decrmt
-and var = string * value
 and value =
   | Integer of int
   | Decimal of float
