@@ -131,44 +131,120 @@ statements:
   | statement statements { $1 :: $2 }
   ;
 statement:
-  | decl { $1 }
+  | prim expr SEMICOLON { Dec ($1, $2) }
   | expr SEMICOLON { Expr $1 }
   ;
-decl:
-  | prim dec_exprs SEMICOLON { Dec ($1, $2) }
-  ;
-dec_exprs:
-  | { [] }
-  | dec_expr { [$1] }
-  | dec_expr COMMA dec_exprs { $1 :: $3}
-  ;
-dec_expr:
-  | ID { DecVar $1 }
-  | ID ASSIGN expr { InitVar ($1, $3) }
-  ;
 expr:
+  | expr15 { $1 }
+  ;
+var: ID { $1 }
+  ;
+expr0:
   | var { Var $1 }
   | value { Value $1 }
-  | infix { $1 }
-  | prefix { $1 }
-  | postfix { $1 }
   ;
-infix: expr inop expr { Infix ($1, $2, $3) };
-inop:
-  | PLUS { Plus }
-  | MINUS { Minus }
+expr1:
+  | var op1 { Postfix ($1, $2) }
+  | expr0 { $1 }
+  ;
+op1:
+  | INC { Incrmt }
+  | DEC { Decrmt }
+  ;
+expr2:
+  | op2 var { Prefix ($1, $2) }
+  | expr1 { $1 }
+  ;
+op2:
+  | INC { Incrmt }
+  | DEC { Decrmt }
+  ;
+expr3:
+  | expr3 op3 expr2 { Infix ($1, $2, $3) }
+  | expr2 { $1 }
+  ;
+op3:
   | TIMES { Times }
   | DIVIDE { Divide }
   | MOD { Mod }
-prefix:
-  | INC var { Prefix (Incrmt, $2) }
-  | DEC var { Prefix (Decrmt, $2) }
   ;
-postfix:
-  | var INC { Postfix ($1, Incrmt) }
-  | var DEC { Postfix ($1, Decrmt) }
+expr4:
+  | expr4 op4 expr3 { Infix ($1, $2, $3) }
+  | expr3 { $1 }
   ;
-var: ID { $1 }
+op4:
+  | PLUS { Plus }
+  | MINUS { Minus }
+  ;
+expr5:
+  | expr5 op5 expr4 { Infix ($1, $2, $3 ) }
+  | expr4 { $1 }
+  ;
+op5:
+  | SHIFT_LEFT { ShiftLeft }
+  | SHIFT_RIGHT { ShiftRight }
+  ;
+expr6:
+  | expr6 op6 expr5 { Infix ($1, $2, $3 ) }
+  | expr5 { $1 }
+  ;
+op6:
+  | LESS { Less }
+  | LESSER_EQ { LesserEq }
+  | GREATER { Greater }
+  | GREATER_EQ { GreaterEq }
+  ;
+expr7:
+  | expr7 op7 expr6 { Infix ($1, $2, $3 ) }
+  | expr6 { $1 }
+  ;
+op7:
+  | EQUALS { Equals }
+  | NOT_EQUALS { NotEquals }
+  ;
+expr8:
+  | expr8 BIT_AND expr7 { Infix ($1, BitAnd, $3 ) }
+  | expr7 { $1 }
+  ;
+expr9:
+  | expr9 BIT_XOR expr8 { Infix ($1, BitXor, $3 ) }
+  | expr8 { $1 }
+  ;
+expr10:
+  | expr10 BIT_OR expr9 { Infix ($1, BitOr, $3 ) }
+  | expr9 { $1 }
+  ;
+expr11:
+  | expr11 AND expr10 { Infix ($1, And, $3) }
+  | expr10 { $1 }
+  ;
+expr12:
+  | expr12 OR expr11 { Infix ($1, Or, $3) }
+  | expr11 { $1 }
+  ;
+expr13:
+  | expr12 { $1 } /* TODO: ternary operator */
+  ;
+expr14:
+  | var op14 expr14 { Infix (Var $1, $2, $3) }
+  | expr13 { $1 }
+  ;
+op14:
+  | ASSIGN { Asgmt }
+  | PLUS_A { PlusA }
+  | MINUS_A { MinusA }
+  | TIMES_A { TimesA }
+  | DIVIDE_A { DivideA }
+  | MOD_A { ModA }
+  | SHIFT_LEFT_A { ShiftLeftA }
+  | SHIFT_RIGHT_A { ShiftRightA }
+  | BIT_AND_A { BitAndA }
+  | BIT_OR_A { BitOrA }
+  | BIT_XOR_A { BitXorA }
+  ;
+expr15:
+  | expr15 COMMA expr14 { Infix ($1, Comma, $3) }
+  | expr14 { $1 }
   ;
 prim:
   | CHAR { Char }

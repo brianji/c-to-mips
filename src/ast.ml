@@ -10,7 +10,7 @@ and prim =
 and param = prim * id
 and statement =
   | Expr of expr
-  | Dec of prim * (dec_expr list)
+  | Dec of prim * expr
 and dec_expr =
   | DecVar of id
   | InitVar of id * expr
@@ -27,6 +27,30 @@ and inop =
   | Divide
   | Mod
   | Asgmt
+  | ShiftLeft
+  | ShiftRight
+  | Less
+  | LesserEq
+  | Greater
+  | GreaterEq
+  | Equals
+  | NotEquals
+  | BitAnd
+  | BitXor
+  | BitOr
+  | And
+  | Or
+  | PlusA
+  | MinusA
+  | TimesA
+  | DivideA
+  | ModA
+  | ShiftLeftA
+  | ShiftRightA
+  | BitAndA
+  | BitOrA
+  | BitXorA
+  | Comma
 and endop =
   | Incrmt
   | Decrmt

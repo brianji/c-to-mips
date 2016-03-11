@@ -1,6 +1,8 @@
 open Ast
 open To_string
 
+let indent = 2
+
 let tail l = try List.tl l with Failure _ -> []
 
 let print_param (prim, id) =
@@ -19,10 +21,14 @@ let print_params params =
   in
   let _ = List.fold_left aux (tail params) params in ()
 
-let print_inop i =
-  print_string " ";
-  print_string (inop_string i);
-  print_string " "
+let print_inop i = match i with
+  | Comma ->
+    print_string (inop_string i);
+    print_string " "
+  | _ ->
+    print_string " ";
+    print_string (inop_string i);
+    print_string " "
 
 let rec print_expr = function
   | Var v -> print_string v
@@ -38,37 +44,27 @@ let rec print_expr = function
     print_string id;
     print_string (endop_string e)
 
-let print_dec_expr = function
-  | DecVar id -> print_string id
-  | InitVar (id, expr) ->
-    print_string id;
-    print_string " = ";
-    print_expr expr
-
-let print_dec (p, l) =
-  print_string (prim_string p);
-  print_string " ";
-  let aux a dec =
-    print_dec_expr dec;
-    match a with
-      | [] -> []
-      | _ :: t ->
-        print_string ", ";
-        t
-  in
-  let _ = List.fold_left aux (tail l) l in
-  print_string ";";
-  print_newline ()
-
 let print_statement = function
-  | Dec (p, l) -> print_dec (p, l)
+  | Dec (p, e) ->
+    print_string (prim_string p);
+    print_string " ";
+    print_expr e;
+    print_string ";";
+    print_newline ()
   | Expr e ->
     print_expr e;
     print_string ";";
     print_newline ()
 
-let print_statements statements =
-  let aux _ statement = print_statement statement in
+let print_indent i =
+  let s = String.make (indent * i) ' ' in
+  print_string s
+
+let print_statements statements indent =
+  let aux _ statement =
+    print_indent indent;
+    print_statement statement
+  in
   List.fold_left aux () statements
 
 let print_function f =
@@ -80,7 +76,7 @@ let print_function f =
   print_params params;
   print_string ") {";
   print_newline ();
-  print_statements statements;
+  print_statements statements 1;
   print_string "}";
   print_newline ()
 
