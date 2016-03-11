@@ -11,6 +11,8 @@ and param = prim * id
 and statement =
   | Expr of expr
   | Dec of prim * expr
+  | Return
+  | ReturnExpr of expr
 and dec_expr =
   | DecVar of id
   | InitVar of id * expr

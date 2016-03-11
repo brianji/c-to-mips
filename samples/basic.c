@@ -5,4 +5,6 @@ int fun(int i, float f, char c) {
   a <<= 5 && 2 || 7;
   b--;
   ++c;
+
+  return a + b - c;
 }

@@ -55,6 +55,13 @@ let print_statement = function
     print_expr e;
     print_string ";";
     print_newline ()
+  | Return ->
+    print_string "return;";
+    print_newline ()
+  | ReturnExpr e ->
+    print_string "return ";
+    print_expr e;
+    print_newline ()
 
 let print_indent i =
   let s = String.make (indent * i) ' ' in

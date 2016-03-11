@@ -133,6 +133,11 @@ statements:
 statement:
   | prim expr SEMICOLON { Dec ($1, $2) }
   | expr SEMICOLON { Expr $1 }
+  | return_statement { $1 }
+  ;
+return_statement:
+  | RETURN expr SEMICOLON { ReturnExpr $2 }
+  | RETURN SEMICOLON { Return }
   ;
 expr:
   | expr15 { $1 }
