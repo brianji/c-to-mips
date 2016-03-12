@@ -44,7 +44,26 @@ let rec print_expr = function
     print_string id;
     print_string (endop_string e)
 
-let print_statement = function
+let print_indent i =
+  let s = String.make (indent * i) ' ' in
+  print_string s
+
+let rec print_statements statements indent =
+  let aux _ statement =
+    print_indent indent;
+    print_statement statement indent
+  in
+  List.fold_left aux () statements
+and print_while (e, s) indent =
+  print_string "while (";
+  print_expr e;
+  print_string ") {";
+  print_newline ();
+  print_statements s (indent + 1);
+  print_indent indent;
+  print_string "}";
+  print_newline ()
+and print_statement statement indent = match statement with
   | Dec (p, e) ->
     print_string (prim_string p);
     print_string " ";
@@ -62,17 +81,7 @@ let print_statement = function
     print_string "return ";
     print_expr e;
     print_newline ()
-
-let print_indent i =
-  let s = String.make (indent * i) ' ' in
-  print_string s
-
-let print_statements statements indent =
-  let aux _ statement =
-    print_indent indent;
-    print_statement statement
-  in
-  List.fold_left aux () statements
+  | While (e, s) -> print_while (e, s) indent; ()
 
 let print_function f =
   let (return, id, params, statements) = f in

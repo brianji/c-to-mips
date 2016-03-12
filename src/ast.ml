@@ -13,6 +13,7 @@ and statement =
   | Dec of prim * expr
   | Return
   | ReturnExpr of expr
+  | While of expr * (statement list)
 and dec_expr =
   | DecVar of id
   | InitVar of id * expr

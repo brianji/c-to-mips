@@ -134,6 +134,8 @@ statement:
   | prim expr SEMICOLON { Dec ($1, $2) }
   | expr SEMICOLON { Expr $1 }
   | return_statement { $1 }
+  | WHILE LEFT_PAREN expr RIGHT_PAREN LEFT_BRACE statements RIGHT_BRACE
+      { While ($3, $6) }
   ;
 return_statement:
   | RETURN expr SEMICOLON { ReturnExpr $2 }
