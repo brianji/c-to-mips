@@ -4,12 +4,11 @@ open To_string
 let tail l = try List.tl l with Failure _ -> []
 
 let print_indent i = String.make (2 * i) ' ' |> print_string
-let print_space () = print_char ' '
 
 let print_params params =
   let process_param a (prim, id) =
     print_string @@ prim_string prim;
-    print_space ();
+    print_char ' ';
     print_string id;
     if List.length a > 0 then print_string ", ";
     tail a
@@ -19,11 +18,11 @@ let print_params params =
 let print_inop i = match i with
   | Comma ->
     print_string @@ inop_string i;
-    print_space ()
+    print_char ' '
   | _ ->
-    print_space ();
+    print_char ' ';
     print_string @@ inop_string i;
-    print_space ()
+    print_char ' '
 
 let rec print_expr = function
   | Var v -> print_string v
@@ -48,13 +47,13 @@ let rec print_statements statements indent =
 and print_statement statement indent = match statement with
   | Dec (p, e) ->
     print_string @@ prim_string p;
-    print_string " ";
+    print_char ' ';
     print_expr e;
-    print_string ";";
+    print_char ';';
     print_newline ()
   | Expr e ->
     print_expr e;
-    print_string ";";
+    print_char ';';
     print_newline ()
   | Return ->
     print_string "return;";
@@ -71,19 +70,19 @@ and print_statement statement indent = match statement with
     print_newline ();
     print_statements s @@ indent + 1;
     print_indent indent;
-    print_string "}";
+    print_char '}';
     print_newline ()
 
 let print_function (return, id, params, statements) =
   print_string @@ return_string return;
-  print_string " ";
+  print_char ' ';
   print_string id;
-  print_string "(";
+  print_char '(';
   print_params params;
   print_string ") {";
   print_newline ();
   print_statements statements 1;
-  print_string "}";
+  print_char '}';
   print_newline ()
 
 let _ = Lexing.from_channel stdin |> Parser.main Lexer.read |> print_function
