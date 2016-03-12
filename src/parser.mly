@@ -146,6 +146,8 @@ statement:
   | prim expr SEMICOLON { Dec ($1, $2) }
   | expr SEMICOLON { Expr $1 }
   | return_statement { $1 }
+  | BREAK SEMICOLON { Break }
+  | CONTINUE SEMICOLON { Continue }
   | WHILE LEFT_PAREN expr RIGHT_PAREN block { While ($3, $5) }
   | FOR LEFT_PAREN for_control RIGHT_PAREN block { For ($3, $5) }
   ;

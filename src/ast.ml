@@ -18,6 +18,8 @@ and statement =
   | Dec of prim * expr
   | Return
   | ReturnExpr of expr
+  | Break
+  | Continue
   | While of expr * block
   | For of (expr * expr * expr) * block
 and dec_expr =

@@ -68,6 +68,12 @@ and print_statement statement indent = match statement with
     print_expr e;
     print_char ';';
     print_newline ()
+  | Break ->
+    print_string "break;";
+    print_newline ()
+  | Continue ->
+    print_string "continue;";
+    print_newline ()
   | While (e, s) ->
     print_string "while (";
     print_expr e;
