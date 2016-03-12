@@ -114,12 +114,19 @@
 main: func EOF { $1 }
   ;
 func:
-  | return ID LEFT_PAREN params RIGHT_PAREN LEFT_BRACE statements RIGHT_BRACE
-      { ($1, $2, $4, $7) }
+  | return ID LEFT_PAREN params RIGHT_PAREN block { ($1, $2, $4, $6) }
+  ;
+block:
+  | LEFT_BRACE statements RIGHT_BRACE { $2 }
   ;
 return:
   | VOID { Void }
   | prim { Prim $1 }
+  ;
+prim:
+  | CHAR { Char }
+  | INT { Int }
+  | FLOAT { Float }
   ;
 params:
   | { [] }
@@ -134,10 +141,8 @@ statement:
   | prim expr SEMICOLON { Dec ($1, $2) }
   | expr SEMICOLON { Expr $1 }
   | return_statement { $1 }
-  | WHILE LEFT_PAREN expr RIGHT_PAREN LEFT_BRACE statements RIGHT_BRACE
-      { While ($3, $6) }
-  | FOR LEFT_PAREN for_control RIGHT_PAREN LEFT_BRACE statements RIGHT_BRACE
-      { For ($3, $6) }
+  | WHILE LEFT_PAREN expr RIGHT_PAREN block { While ($3, $5) }
+  | FOR LEFT_PAREN for_control RIGHT_PAREN block { For ($3, $5) }
   ;
 return_statement:
   | RETURN expr SEMICOLON { ReturnExpr $2 }
@@ -145,6 +150,7 @@ return_statement:
   ;
 for_control:
   | for_expr SEMICOLON for_expr SEMICOLON for_expr { ($1, $3, $5) }
+  ;
 for_expr:
   | expr { $1 }
   | { Empty }
@@ -260,11 +266,6 @@ op14:
 expr15:
   | expr15 COMMA expr14 { Infix ($1, Comma, $3) }
   | expr14 { $1 }
-  ;
-prim:
-  | CHAR { Char }
-  | INT { Int }
-  | FLOAT { Float }
   ;
 value:
   | INT_VAL { Integer $1 }
