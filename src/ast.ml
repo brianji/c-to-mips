@@ -23,6 +23,7 @@ and expr =
   | Empty
   | Var of id
   | Value of value
+  | Paren of expr
   | Infix of expr * inop * expr
   | Prefix of endop * id
   | Postfix of id * endop

@@ -28,6 +28,10 @@ let rec print_expr = function
   | Empty -> ()
   | Var v -> print_string v
   | Value v -> print_string @@ value_string v
+  | Paren e ->
+    print_char '(';
+    print_expr e;
+    print_char ')'
   | Infix (e1, i, e2) ->
     print_expr e1;
     print_inop i;

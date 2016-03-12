@@ -163,6 +163,7 @@ var: ID { $1 }
 expr0:
   | var { Var $1 }
   | value { Value $1 }
+  | LEFT_PAREN expr RIGHT_PAREN { Paren ($2) }
   ;
 expr1:
   | var op1 { Postfix ($1, $2) }
