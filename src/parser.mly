@@ -136,10 +136,18 @@ statement:
   | return_statement { $1 }
   | WHILE LEFT_PAREN expr RIGHT_PAREN LEFT_BRACE statements RIGHT_BRACE
       { While ($3, $6) }
+  | FOR LEFT_PAREN for_control RIGHT_PAREN LEFT_BRACE statements RIGHT_BRACE
+      { For ($3, $6) }
   ;
 return_statement:
   | RETURN expr SEMICOLON { ReturnExpr $2 }
   | RETURN SEMICOLON { Return }
+  ;
+for_control:
+  | for_expr SEMICOLON for_expr SEMICOLON for_expr { ($1, $3, $5) }
+for_expr:
+  | expr { $1 }
+  | { Empty }
   ;
 expr:
   | expr15 { $1 }

@@ -25,6 +25,7 @@ let print_inop i = match i with
     print_char ' '
 
 let rec print_expr = function
+  | Empty -> ()
   | Var v -> print_string v
   | Value v -> print_string @@ value_string v
   | Infix (e1, i, e2) ->
@@ -66,6 +67,19 @@ and print_statement statement indent = match statement with
   | While (e, s) ->
     print_string "while (";
     print_expr e;
+    print_string ") {";
+    print_newline ();
+    print_statements s @@ indent + 1;
+    print_indent indent;
+    print_char '}';
+    print_newline ()
+  | For ((e1, e2, e3), s) ->
+    print_string "for (";
+    print_expr e1;
+    print_string "; ";
+    print_expr e2;
+    print_string "; ";
+    print_expr e3;
     print_string ") {";
     print_newline ();
     print_statements s @@ indent + 1;

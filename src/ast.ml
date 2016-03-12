@@ -14,10 +14,12 @@ and statement =
   | Return
   | ReturnExpr of expr
   | While of expr * (statement list)
+  | For of (expr * expr * expr) * (statement list)
 and dec_expr =
   | DecVar of id
   | InitVar of id * expr
 and expr =
+  | Empty
   | Var of id
   | Value of value
   | Infix of expr * inop * expr
