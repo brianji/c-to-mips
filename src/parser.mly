@@ -128,6 +128,11 @@ prim:
   | INT { Int }
   | FLOAT { Float }
   ;
+value:
+  | INT_VAL { Integer $1 }
+  | FLOAT_VAL { Decimal $1 }
+  | CHAR_VAL { Letter $1 }
+  ;
 params:
   | { [] }
   | prim ID { [$1, $2] }
@@ -158,7 +163,8 @@ for_expr:
 expr:
   | expr15 { $1 }
   ;
-var: ID { $1 }
+var:
+  | ID { $1 }
   ;
 expr0:
   | var { Var $1 }
@@ -267,9 +273,4 @@ op14:
 expr15:
   | expr15 COMMA expr14 { Infix ($1, Comma, $3) }
   | expr14 { $1 }
-  ;
-value:
-  | INT_VAL { Integer $1 }
-  | FLOAT_VAL { Decimal $1 }
-  | CHAR_VAL { Letter $1 }
   ;

@@ -8,6 +8,10 @@ and prim =
   | Int
   | Float
   | Char
+and value =
+  | Integer of int
+  | Decimal of float
+  | Letter of char
 and param = prim * id
 and statement =
   | Expr of expr
@@ -61,7 +65,3 @@ and inop =
 and endop =
   | Incrmt
   | Decrmt
-and value =
-  | Integer of int
-  | Decimal of float
-  | Letter of char
