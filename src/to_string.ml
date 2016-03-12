@@ -9,8 +9,6 @@ let return_string = function
   | Void -> "void"
   | Prim p -> prim_string p
 
-let param_string = function (prim, id) -> (prim_string prim) ^ " " ^ id
-
 let inop_string = function
   | Plus -> "+"
   | Minus -> "-"
