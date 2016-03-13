@@ -154,6 +154,8 @@ statement:
   | block { $1 }
   | WHILE condition statement { While ($2, $3) }
   | FOR LEFT_PAREN for_control RIGHT_PAREN statement { For ($3, $5) }
+  | IF condition statement { If ($2, $3) }
+  | IF condition statement ELSE statement { IfElse ($2, $3, $5) }
   ;
 return_statement:
   | RETURN expr SEMICOLON { ReturnExpr $2 }

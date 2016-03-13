@@ -22,6 +22,8 @@ and statement =
   | Block of statement list
   | While of expr * statement
   | For of (expr * expr * expr) * statement
+  | If of expr * statement
+  | IfElse of expr * statement * statement
 and dec_expr =
   | DecVar of id
   | InitVar of id * expr

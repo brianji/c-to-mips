@@ -79,13 +79,13 @@ and print_statement statement indent = match statement with
     print_newline ();
     print_statements b @@ indent + 1;
     print_indent indent;
-    print_char '}';
-    print_newline ()
+    print_char '}'
   | While (e, s) ->
     print_string "while (";
     print_expr e;
     print_string ") ";
-    print_statement s indent
+    print_statement s indent;
+    print_newline ()
   | For ((e1, e2, e3), s) ->
     print_string "for (";
     print_expr e1;
@@ -94,7 +94,44 @@ and print_statement statement indent = match statement with
     print_string "; ";
     print_expr e3;
     print_string ") ";
-    print_statement s indent
+    print_statement s indent;
+    print_newline ()
+  | If (e, s) ->
+    print_string "if (";
+    print_expr e;
+    print_char ')';
+    (match s with
+      | Block _ ->
+        print_char ' ';
+        print_statement s indent;
+        print_newline ()
+      | _ ->
+        print_newline ();
+        print_indent @@ indent + 1;
+        print_statement s @@ indent + 1)
+  | IfElse (e, s1, s2) ->
+    print_string "if (";
+    print_expr e;
+    print_string ") ";
+    (match s1 with
+      | Block _ ->
+        print_char ' ';
+        print_statement s1 indent
+      | _ ->
+        print_newline ();
+        print_indent @@ indent + 1;
+        print_statement s1 indent);
+    (match s2 with
+      | Block _ ->
+        print_string " else";
+        print_char ' ';
+        print_statement s2 indent
+      | _ ->
+        print_indent indent;
+        print_string "else";
+        print_newline ();
+        print_indent @@ indent + 1;
+        print_statement s2 indent)
 
 let print_function (return, id, params, block) =
   print_string @@ return_string return;
@@ -103,6 +140,7 @@ let print_function (return, id, params, block) =
   print_char '(';
   print_params params;
   print_string ") ";
-  print_statement block 0
+  print_statement block 0;
+  print_newline ()
 
 let _ = Lexing.from_channel stdin |> Parser.main Lexer.read |> print_function
