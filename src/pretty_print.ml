@@ -112,7 +112,7 @@ and print_statement statement indent = match statement with
   | IfElse (e, s1, s2) ->
     print_string "if (";
     print_expr e;
-    print_string ") ";
+    print_char ')';
     (match s1 with
       | Block _ ->
         print_char ' ';
@@ -125,7 +125,8 @@ and print_statement statement indent = match statement with
       | Block _ ->
         print_string " else";
         print_char ' ';
-        print_statement s2 indent
+        print_statement s2 indent;
+        print_newline ()
       | _ ->
         print_indent indent;
         print_string "else";
