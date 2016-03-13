@@ -127,6 +127,14 @@ and print_statement statement indent = match statement with
         print_char ' ';
         print_statement s2 indent;
         print_newline ()
+      | If _ ->
+        print_string " else";
+        print_char ' ';
+        print_statement s2 indent
+      | IfElse _ ->
+        print_string " else";
+        print_char ' ';
+        print_statement s2 indent
       | _ ->
         print_indent indent;
         print_string "else";
