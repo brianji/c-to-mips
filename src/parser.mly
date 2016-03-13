@@ -117,7 +117,7 @@ func:
   | return ID LEFT_PAREN params RIGHT_PAREN block { ($1, $2, $4, $6) }
   ;
 block:
-  | LEFT_BRACE statements RIGHT_BRACE { $2 }
+  | LEFT_BRACE statements RIGHT_BRACE { Block $2 }
   ;
 return:
   | VOID { Void }
@@ -148,8 +148,9 @@ statement:
   | return_statement { $1 }
   | BREAK SEMICOLON { Break }
   | CONTINUE SEMICOLON { Continue }
-  | WHILE LEFT_PAREN expr RIGHT_PAREN block { While ($3, $5) }
-  | FOR LEFT_PAREN for_control RIGHT_PAREN block { For ($3, $5) }
+  | block { $1 }
+  | WHILE LEFT_PAREN expr RIGHT_PAREN statement { While ($3, $5) }
+  | FOR LEFT_PAREN for_control RIGHT_PAREN statement { For ($3, $5) }
   ;
 return_statement:
   | RETURN expr SEMICOLON { ReturnExpr $2 }

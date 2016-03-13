@@ -1,6 +1,5 @@
-type func = return * id * (param list) * block
+type func = return * id * (param list) * statement
 and id = string
-and block = statement list
 and return =
   | Void
   | Prim of prim
@@ -20,8 +19,9 @@ and statement =
   | ReturnExpr of expr
   | Break
   | Continue
-  | While of expr * block
-  | For of (expr * expr * expr) * block
+  | Block of statement list
+  | While of expr * statement
+  | For of (expr * expr * expr) * statement
 and dec_expr =
   | DecVar of id
   | InitVar of id * expr

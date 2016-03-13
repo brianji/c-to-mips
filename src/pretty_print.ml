@@ -74,15 +74,18 @@ and print_statement statement indent = match statement with
   | Continue ->
     print_string "continue;";
     print_newline ()
-  | While (e, s) ->
-    print_string "while (";
-    print_expr e;
-    print_string ") {";
+  | Block b ->
+    print_char '{';
     print_newline ();
-    print_statements s @@ indent + 1;
+    print_statements b @@ indent + 1;
     print_indent indent;
     print_char '}';
     print_newline ()
+  | While (e, s) ->
+    print_string "while (";
+    print_expr e;
+    print_string ") ";
+    print_statement s indent
   | For ((e1, e2, e3), s) ->
     print_string "for (";
     print_expr e1;
@@ -90,23 +93,16 @@ and print_statement statement indent = match statement with
     print_expr e2;
     print_string "; ";
     print_expr e3;
-    print_string ") {";
-    print_newline ();
-    print_statements s @@ indent + 1;
-    print_indent indent;
-    print_char '}';
-    print_newline ()
+    print_string ") ";
+    print_statement s indent
 
-let print_function (return, id, params, statements) =
+let print_function (return, id, params, block) =
   print_string @@ return_string return;
   print_char ' ';
   print_string id;
   print_char '(';
   print_params params;
-  print_string ") {";
-  print_newline ();
-  print_statements statements 1;
-  print_char '}';
-  print_newline ()
+  print_string ") ";
+  print_statement block 0
 
 let _ = Lexing.from_channel stdin |> Parser.main Lexer.read |> print_function
