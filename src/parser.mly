@@ -119,6 +119,9 @@ func:
 block:
   | LEFT_BRACE statements RIGHT_BRACE { Block $2 }
   ;
+condition:
+  | LEFT_PAREN expr RIGHT_PAREN { $2 }
+  ;
 return:
   | VOID { Void }
   | prim { Prim $1 }
@@ -149,7 +152,7 @@ statement:
   | BREAK SEMICOLON { Break }
   | CONTINUE SEMICOLON { Continue }
   | block { $1 }
-  | WHILE LEFT_PAREN expr RIGHT_PAREN statement { While ($3, $5) }
+  | WHILE condition statement { While ($2, $3) }
   | FOR LEFT_PAREN for_control RIGHT_PAREN statement { For ($3, $5) }
   ;
 return_statement:
