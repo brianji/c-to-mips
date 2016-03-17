@@ -99,48 +99,20 @@ and print_statement statement indent = match statement with
   | If (e, s) ->
     print_string "if (";
     print_expr e;
-    print_char ')';
-    (match s with
-      | Block _ ->
-        print_char ' ';
-        print_statement s indent;
-        print_newline ()
-      | _ ->
-        print_newline ();
-        print_indent @@ indent + 1;
-        print_statement s @@ indent + 1)
+    print_string ") ";
+    print_statement s indent;
+    print_newline ()
   | IfElse (e, s1, s2) ->
     print_string "if (";
     print_expr e;
-    print_char ')';
-    (match s1 with
-      | Block _ ->
-        print_char ' ';
-        print_statement s1 indent
-      | _ ->
-        print_newline ();
-        print_indent @@ indent + 1;
-        print_statement s1 indent);
-    (match s2 with
-      | Block _ ->
-        print_string " else";
-        print_char ' ';
-        print_statement s2 indent;
-        print_newline ()
-      | If _ ->
-        print_string " else";
-        print_char ' ';
-        print_statement s2 indent
-      | IfElse _ ->
-        print_string " else";
-        print_char ' ';
-        print_statement s2 indent
-      | _ ->
-        print_indent indent;
-        print_string "else";
-        print_newline ();
-        print_indent @@ indent + 1;
-        print_statement s2 indent)
+    print_string ") ";
+    print_statement s1 indent;
+    print_string " else ";
+    print_statement s2 indent;
+    match s2 with
+      | If _ -> ()
+      | IfElse _ -> ()
+      | _ -> print_newline ()
 
 let print_function (return, id, params, block) =
   print_string @@ return_string return;
