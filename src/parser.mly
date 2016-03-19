@@ -177,12 +177,21 @@ expr:
 var:
   | ID { $1 }
   ;
+function_call:
+  | ID LEFT_PAREN args RIGHT_PAREN { FunctionCall ($1, $3) }
+  ;
+args:
+  | { [] }
+  | expr { [$1] }
+  | expr COMMA args { $1 :: $3 }
+  ;
 expr0:
   | var { Var $1 }
   | value { Value $1 }
   | LEFT_PAREN expr RIGHT_PAREN { Paren ($2) }
   ;
 expr1:
+  | function_call { $1 }
   | var op1 { Postfix ($1, $2) }
   | expr0 { $1 }
   ;

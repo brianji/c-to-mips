@@ -32,6 +32,11 @@ let rec print_expr = function
     print_char '(';
     print_expr e;
     print_char ')'
+  | FunctionCall (id, args) ->
+    print_string id;
+    print_char '(';
+    print_args args;
+    print_char ')'
   | Infix (e1, i, e2) ->
     print_expr e1;
     print_inop i;
@@ -42,6 +47,13 @@ let rec print_expr = function
   | Postfix (id, e) ->
     print_string id;
     print_string @@ endop_string e
+and print_args args =
+  let process_arg a expr =
+    print_expr expr;
+    if List.length a > 0 then print_string ", ";
+    tail a
+  in
+  let _ = List.fold_left process_arg (tail args) args in ()
 
 let rec print_statements statements indent =
   let aux _ statement =

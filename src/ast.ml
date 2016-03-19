@@ -32,6 +32,7 @@ and expr =
   | Var of id
   | Value of value
   | Paren of expr
+  | FunctionCall of id * (expr list)
   | Infix of expr * inop * expr
   | Prefix of endop * id
   | Postfix of id * endop
