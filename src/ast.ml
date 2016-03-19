@@ -69,3 +69,5 @@ and inop =
 and endop =
   | Incrmt
   | Decrmt
+  | Not
+  | Comp

@@ -44,6 +44,8 @@ let inop_string = function
 let endop_string = function
   | Incrmt -> "++"
   | Decrmt -> "--"
+  | Not -> "!"
+  | Comp -> "~"
 
 let value_string = function
   | Integer i -> string_of_int i

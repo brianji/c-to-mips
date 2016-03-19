@@ -197,6 +197,8 @@ expr2:
 op2:
   | INC { Incrmt }
   | DEC { Decrmt }
+  | NOT { Not }
+  | COMP { Comp }
   ;
 expr3:
   | expr3 op3 expr2 { Infix ($1, $2, $3) }
