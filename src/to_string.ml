@@ -1,5 +1,7 @@
 open Ast
 
+let indent_string i = String.make (2 * i) ' '
+
 let prim_string = function
   | Int -> "int"
   | Float -> "float"
@@ -83,4 +85,54 @@ let rec decs_string = function
   | [h] -> expr_string h
   | h :: t -> expr_string h ^ ", " ^ decs_string t
 
-let function_string (return, id, params, block) = 
+let rec statements_string statements indent = match statements with
+  | [] -> ""
+  | h :: t ->
+    indent_string indent
+      ^ statement_string h indent
+      ^ statements_string t indent
+and statement_string statement indent = match statement with
+  | Dec (p, decs) -> prim_string p ^ " " ^ decs_string decs ^ ";\n"
+  | Expr e -> expr_string e ^ ";\n"
+  | Return -> "return;\n"
+  | ReturnExpr e -> "return " ^ expr_string e ^ ";\n"
+  | Break -> "break;\n"
+  | Continue -> "continue;\n"
+  | Block b ->
+    "{\n" ^ statements_string b (indent + 1) ^ indent_string indent ^ "}"
+  | While (e, s) ->
+    "while (" ^ expr_string e ^ ") " ^ statement_string s indent ^ "\n"
+  | For ((e1, e2, e3), s) ->
+    "for ("
+      ^ expr_string e1
+      ^ "; "
+      ^ expr_string e2
+      ^ "; "
+      ^ expr_string e3
+      ^ statement_string s indent
+      ^ "\n"
+  | If (e, s) ->
+    "if (" ^ expr_string e ^ ") " ^ statement_string s indent ^ "\n"
+  | IfElse (e, s1, s2) ->
+    let end_string = match s2 with
+      | If _ -> ""
+      | IfElse _ -> ""
+      | _ -> "\n"
+    in
+    "if ("
+      ^ expr_string e
+      ^ ") "
+      ^ statement_string s1 indent
+      ^ " else "
+      ^ statement_string s2 indent
+      ^ end_string
+
+    let function_string (return, id, params, block) =
+      return_string return
+        ^ " "
+        ^ id
+        ^ "("
+        ^ params_string params
+        ^ ") "
+        ^ statement_string block 0
+        ^ "\n"
