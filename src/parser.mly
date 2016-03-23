@@ -149,7 +149,7 @@ statements:
   | statement statements { $1 :: $2 }
   ;
 statement:
-  | prim expr SEMICOLON { Dec ($1, $2) }
+  | prim decs SEMICOLON { Dec ($1, $2) }
   | expr SEMICOLON { Expr $1 }
   | return_statement { $1 }
   | BREAK SEMICOLON { Break }
@@ -159,6 +159,15 @@ statement:
   | FOR LEFT_PAREN for_control RIGHT_PAREN statement { For ($3, $5) }
   | IF condition statement %prec IFX { If ($2, $3) }
   | IF condition statement ELSE statement { IfElse ($2, $3, $5) }
+  ;
+decs:
+  | { [] }
+  | dec { [$1] }
+  | dec COMMA decs { $1 :: $3 }
+  ;
+dec:
+  | var { Var $1 }
+  | var ASSIGN expr14 { Infix(Var $1, Asgmt, $3) }
   ;
 return_statement:
   | RETURN expr SEMICOLON { ReturnExpr $2 }
@@ -182,8 +191,8 @@ function_call:
   ;
 args:
   | { [] }
-  | expr { [$1] }
-  | expr COMMA args { $1 :: $3 }
+  | expr14 { [$1] }
+  | expr14 COMMA args { $1 :: $3 }
   ;
 expr0:
   | var { Var $1 }

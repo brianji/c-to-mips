@@ -55,6 +55,14 @@ and print_args args =
   in
   let _ = List.fold_left process_arg (tail args) args in ()
 
+let print_decs decs =
+  let process_dec a expr =
+    print_expr expr;
+    if List.length a > 0 then print_string ", ";
+    tail a
+  in
+  let _ = List.fold_left process_dec (tail decs) decs in ()
+
 let rec print_statements statements indent =
   let aux _ statement =
     print_indent indent;
@@ -62,10 +70,10 @@ let rec print_statements statements indent =
   in
   List.fold_left aux () statements
 and print_statement statement indent = match statement with
-  | Dec (p, e) ->
+  | Dec (p, decs) ->
     print_string @@ prim_string p;
     print_char ' ';
-    print_expr e;
+    print_decs decs;
     print_char ';';
     print_newline ()
   | Expr e ->

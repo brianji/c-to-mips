@@ -14,7 +14,7 @@ and value =
 and param = prim * id
 and statement =
   | Expr of expr
-  | Dec of prim * expr
+  | Dec of prim * (expr list)
   | Return
   | ReturnExpr of expr
   | Break
