@@ -5,63 +5,11 @@ let tail l = try List.tl l with Failure _ -> []
 
 let print_indent i = String.make (2 * i) ' ' |> print_string
 
-let print_params params =
-  let process_param a (prim, id) =
-    print_string @@ prim_string prim;
-    print_char ' ';
-    print_string id;
-    if List.length a > 0 then print_string ", ";
-    tail a
-  in
-  let _ = List.fold_left process_param (tail params) params in ()
+let print_params params = print_string @@ params_string params
 
-let print_inop i = match i with
-  | Comma ->
-    print_string @@ inop_string i;
-    print_char ' '
-  | _ ->
-    print_char ' ';
-    print_string @@ inop_string i;
-    print_char ' '
+let print_expr e = print_string @@ expr_string e
 
-let rec print_expr = function
-  | Empty -> ()
-  | Var v -> print_string v
-  | Value v -> print_string @@ value_string v
-  | Paren e ->
-    print_char '(';
-    print_expr e;
-    print_char ')'
-  | FunctionCall (id, args) ->
-    print_string id;
-    print_char '(';
-    print_args args;
-    print_char ')'
-  | Infix (e1, i, e2) ->
-    print_expr e1;
-    print_inop i;
-    print_expr e2
-  | Prefix (e, id) ->
-    print_string @@ endop_string e;
-    print_string id
-  | Postfix (id, e) ->
-    print_string id;
-    print_string @@ endop_string e
-and print_args args =
-  let process_arg a expr =
-    print_expr expr;
-    if List.length a > 0 then print_string ", ";
-    tail a
-  in
-  let _ = List.fold_left process_arg (tail args) args in ()
-
-let print_decs decs =
-  let process_dec a expr =
-    print_expr expr;
-    if List.length a > 0 then print_string ", ";
-    tail a
-  in
-  let _ = List.fold_left process_dec (tail decs) decs in ()
+let print_decs decs = print_string @@ decs_string decs
 
 let rec print_statements statements indent =
   let aux _ statement =
