@@ -127,16 +127,16 @@ and statement_string statement indent = match statement with
       ^ statement_string s2 indent
       ^ end_string
 
-    let function_string (return, id, params, block) =
-      return_string return
-        ^ " "
-        ^ id
-        ^ "("
-        ^ params_string params
-        ^ ") "
-        ^ statement_string block 0
-        ^ "\n"
-        
+let function_string (return, id, params, block) =
+  return_string return
+    ^ " "
+    ^ id
+    ^ "("
+    ^ params_string params
+    ^ ") "
+    ^ statement_string block 0
+    ^ "\n"
+
 let _ =
   let s = Lexing.from_channel stdin |> Parser.main Lexer.read |> function_string
   in print_string s
