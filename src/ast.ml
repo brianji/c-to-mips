@@ -1,4 +1,5 @@
-type func = return * id * (param list) * statement
+type prog = func list
+and func = return * id * (param list) * statement
 and id = string
 and return =
   | Void
