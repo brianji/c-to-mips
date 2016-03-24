@@ -111,10 +111,15 @@
 %nonassoc IFX
 %nonassoc ELSE
 
-%start main
-%type <Ast.func> main
+%start prog
+%type <Ast.prog> prog
 %%
-main: func EOF { $1 }
+prog:
+  | functions EOF { $1 }
+  ;
+functions:
+  | { [] }
+  | func functions { $1 :: $2 }
   ;
 func:
   | return ID LEFT_PAREN params RIGHT_PAREN block { ($1, $2, $4, $6) }

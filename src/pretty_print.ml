@@ -137,6 +137,10 @@ let function_string (return, id, params, block) =
     ^ statement_string block 0
     ^ "\n"
 
+let rec prog_string = function
+  | [] -> ""
+  | h :: t -> function_string h ^ prog_string t
+
 let _ =
-  let s = Lexing.from_channel stdin |> Parser.main Lexer.read |> function_string
+  let s = Lexing.from_channel stdin |> Parser.prog Lexer.read |> prog_string
   in print_string s
