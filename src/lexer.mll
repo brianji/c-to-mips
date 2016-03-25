@@ -45,13 +45,13 @@ rule read = parse
 
   (* operators *)
   | op as lxm {
-      try Hashtbl.find Operators.table lxm (* check if keyword *)
+      try Hashtbl.find Operators.table lxm (* check if operator *)
       with Not_found -> raise (SyntaxError ("Invalid operator: " ^ lxm))
     }
 
   (* directives *)
   | ('#' word) as lxm {
-      try Hashtbl.find Directives.table lxm (* check if keyword *)
+      try Hashtbl.find Directives.table lxm (* check if directive *)
       with Not_found -> raise (SyntaxError ("Invalid directive: " ^ lxm))
     }
 
