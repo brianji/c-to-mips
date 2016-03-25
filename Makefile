@@ -1,13 +1,19 @@
 SOURCEDIR = src
 BUILDDIR = build
 CC = ocamlc -I $(BUILDDIR)
-PROGS = pretty_print
+PROGS = eval pretty_print
 
 all: $(PROGS)
 
 clean:
 	@echo "Cleaning $(BUILDDIR) and executables"
 	-@rm $(BUILDDIR)/* pretty_print 2>/dev/null || true
+
+eval: eval.cmo
+	$(CC) -o eval operators.cmo directives.cmo keywords.cmo lexer.cmo parser.cmo eval.cmo ast.cmo
+
+eval.cmo: ast.cmo lexer.cmo parser.cmo
+	$(CC) -o $(BUILDDIR)/eval -c $(SOURCEDIR)/eval.ml
 
 pretty_print: pretty_print.cmo
 	$(CC) -o pretty_print operators.cmo directives.cmo keywords.cmo lexer.cmo parser.cmo pretty_print.cmo ast.cmo
