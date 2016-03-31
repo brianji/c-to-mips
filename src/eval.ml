@@ -9,11 +9,12 @@ let rec eval_expr expr table = match expr with
   | Empty -> failwith "Empty expression."
   | Var v -> eval_var v table
   | Value v -> eval_value v
+  | Paren e -> eval_expr e table
+  | FunctionCall _ -> failwith "Function calls unsupported."
   | Infix (e1, op, e2) -> eval_infix (e1, op, e2) table
   | Assign (id, op, e) -> eval_assign (id, op, e) table
   | Prefix (op, e) -> eval_prefix (op, e) table
   | Postfix (e, op) -> eval_postfix (e, op) table
-  | _ -> failwith "Expression unsupported."
 and eval_var v table =
   try Hashtbl.find table v
   with Not_found -> failwith @@ v ^ " not declared."
@@ -49,18 +50,19 @@ and eval_assign (id, op, e) table =
   try
     let curr = Hashtbl.find table id in
     let v = eval_expr e table in
-    match op with
-    | Asgmt -> Hashtbl.replace table id v; v
-    | PlusA -> let x = v + curr in Hashtbl.replace table id x; x
-    | MinusA -> let x = v - curr in Hashtbl.replace table id x; x
-    | TimesA -> let x = v * curr in Hashtbl.replace table id x; x
-    | DivideA -> let x = v / curr in Hashtbl.replace table id x; x
-    | ModA -> let x = v mod curr in Hashtbl.replace table id x; x
-    | ShiftLeftA -> let x = v lsl curr in Hashtbl.replace table id x; x
-    | ShiftRightA -> let x = v lsr curr in Hashtbl.replace table id x; x
-    | BitAndA -> let x = v land curr in Hashtbl.replace table id x; x
-    | BitOrA -> let x = v lor curr in Hashtbl.replace table id x; x
-    | BitXorA -> let x = v lxor curr in Hashtbl.replace table id x; x
+    let x = match op with
+      | Asgmt -> v
+      | PlusA -> v + curr
+      | MinusA -> v - curr
+      | TimesA -> v * curr
+      | DivideA -> v / curr
+      | ModA -> v mod curr
+      | ShiftLeftA -> v lsl curr
+      | ShiftRightA -> v lsr curr
+      | BitAndA -> v land curr
+      | BitOrA -> v lor curr
+      | BitXorA -> v lxor curr
+    in Hashtbl.replace table id x; x
   with Not_found -> failwith @@ id ^ " not declared."
 and eval_prefix (op, e) table =
   let v = eval_expr e table in
