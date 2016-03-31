@@ -7,12 +7,16 @@ let int_of_bool b = if b then 1 else 0
 
 let rec eval_expr expr table = match expr with
   | Empty -> failwith "Empty expression."
+  | Var v -> eval_var v table
   | Value v -> eval_value v
   | Infix (e1, op, e2) -> eval_infix (e1, op, e2) table
   | Assign (id, op, e) -> eval_assign (id, op, e) table
   | Prefix (op, e) -> eval_prefix (op, e) table
   | Postfix (e, op) -> eval_postfix (e, op) table
   | _ -> failwith "Expression unsupported."
+and eval_var v table =
+  try Hashtbl.find table v
+  with Not_found -> failwith @@ v ^ " not declared."
 and eval_value v = match v with
   | Integer i -> i
   | Decimal d -> int_of_float d
@@ -42,11 +46,22 @@ and eval_infix (e1, op, e2) table =
   | Or -> (bool_of_int v1 || bool_of_int v2) |> int_of_bool
   | Comma -> v2
 and eval_assign (id, op, e) table =
-  let v = eval_expr e table in
-  (* TODO: finish assignment *)
-  match op with
-  | Asgmt -> v
-  | _ -> failwith "Assignment operator not supported."
+  try
+    let curr = Hashtbl.find table id in
+    let v = eval_expr e table in
+    match op with
+    | Asgmt -> Hashtbl.replace table id v; v
+    | PlusA -> let x = v + curr in Hashtbl.replace table id x; x
+    | MinusA -> let x = v - curr in Hashtbl.replace table id x; x
+    | TimesA -> let x = v * curr in Hashtbl.replace table id x; x
+    | DivideA -> let x = v / curr in Hashtbl.replace table id x; x
+    | ModA -> let x = v mod curr in Hashtbl.replace table id x; x
+    | ShiftLeftA -> let x = v lsl curr in Hashtbl.replace table id x; x
+    | ShiftRightA -> let x = v lsr curr in Hashtbl.replace table id x; x
+    | BitAndA -> let x = v land curr in Hashtbl.replace table id x; x
+    | BitOrA -> let x = v lor curr in Hashtbl.replace table id x; x
+    | BitXorA -> let x = v lxor curr in Hashtbl.replace table id x; x
+  with Not_found -> failwith @@ id ^ " not declared."
 and eval_prefix (op, e) table =
   let v = eval_expr e table in
   match op with
@@ -61,17 +76,27 @@ and eval_postfix (e, op) table =
   | Decrmt -> v - 1
   | _ -> failwith "Invalid postfix operator."
 
+let rec eval_dec e table = match e with
+  | [] -> ()
+  | h :: t -> match h with
+    | Var v ->
+      if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
+      else Hashtbl.add table v 0; eval_dec t table
+    | Assign (v, Asgmt, e) ->
+      if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
+      else Hashtbl.add table v (eval_expr e table); eval_dec t table
+    | _ -> failwith "Invalid declaration expression."
+
 let rec eval_statements statements table = match statements with
   | [] -> None
-  | h :: t -> match h with
-    | Return -> None
-    | ReturnExpr e -> Some (eval_expr e table)
-    | _ ->
-      let _ = eval_statement h table in
-       eval_statements t table
+  | h :: t ->
+    let result = eval_statement h table in
+    match result with
+    | Some v -> Some v
+    | None -> eval_statements t table
 and eval_statement statement table = match statement with
-  | Dec (p, decs) -> None
-  | Expr e -> None
+  | Dec (p, decs) -> let () = eval_dec decs table in None
+  | Expr e -> let _ = eval_expr e table in None
   | Return -> None
   | ReturnExpr e -> Some (eval_expr e table)
   | Break -> None
