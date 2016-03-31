@@ -15,11 +15,15 @@ let rec eval_expr expr scope = match expr with
   | Assign (id, op, e) -> eval_assign (id, op, e) scope
   | Prefix (op, e) -> eval_prefix (op, e) scope
   | Postfix (e, op) -> eval_postfix (e, op) scope
-and eval_var v scope =
-  try match Hashtbl.find scope v with
-    | None -> raise Not_found
-    | Some s -> s
-  with Not_found -> failwith @@ v ^ " not declared."
+and eval_var var scope = match scope with
+  | [] -> failwith @@ var ^ " not declared."
+  | h :: t ->
+    if Hashtbl.mem h var then
+      let v = Hashtbl.find h var in
+      match v with
+      | None -> failwith @@ var ^ " not initialized."
+      | Some s -> s
+    else eval_var var t
 and eval_value v = match v with
   | Integer i -> i
   | Decimal d -> int_of_float d
@@ -50,24 +54,23 @@ and eval_infix (e1, op, e2) scope =
   | Comma -> v2
 and eval_assign (id, op, e) scope =
   try
-    let curr = match Hashtbl.find scope id with
-      | None -> raise Not_found
-      | Some s -> s
+    let curr = eval_var id scope in
+    let rhs = eval_expr e scope in
+    let res = match op with
+      | Asgmt -> rhs
+      | PlusA -> rhs + curr
+      | MinusA -> rhs - curr
+      | TimesA -> rhs * curr
+      | DivideA -> rhs / curr
+      | ModA -> rhs mod curr
+      | ShiftLeftA -> rhs lsl curr
+      | ShiftRightA -> rhs lsr curr
+      | BitAndA -> rhs land curr
+      | BitOrA -> rhs lor curr
+      | BitXorA -> rhs lxor curr
     in
-    let v = eval_expr e scope in
-    let x = match op with
-      | Asgmt -> v
-      | PlusA -> v + curr
-      | MinusA -> v - curr
-      | TimesA -> v * curr
-      | DivideA -> v / curr
-      | ModA -> v mod curr
-      | ShiftLeftA -> v lsl curr
-      | ShiftRightA -> v lsr curr
-      | BitAndA -> v land curr
-      | BitOrA -> v lor curr
-      | BitXorA -> v lxor curr
-    in Hashtbl.replace scope id (Some x); x
+    let table = List.find (fun a -> Hashtbl.mem a id) scope
+    in Hashtbl.replace table id (Some res); res
   with Not_found -> failwith @@ id ^ " not declared."
 and eval_prefix (op, e) scope =
   let v = eval_expr e scope in
@@ -83,15 +86,20 @@ and eval_postfix (e, op) scope =
   | Decrmt -> v - 1
   | _ -> failwith "Invalid postfix operator."
 
-let rec eval_dec e scope = match e with
+let rec eval_dec decs scope = match decs with
   | [] -> ()
-  | h :: t -> match h with
+  | h :: t ->
+    let table = match scope with
+      | [] -> failwith "Scope empty."
+      | h :: _ -> h
+    in
+    match h with
     | Var v ->
-      if Hashtbl.mem scope v then failwith @@ v ^ " is already declared."
-      else Hashtbl.add scope v None; eval_dec t scope
-    | Assign (v, Asgmt, e) ->
-      if Hashtbl.mem scope v then failwith @@ v ^ " is already declared."
-      else Hashtbl.add scope v (Some (eval_expr e scope)); eval_dec t scope
+      if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
+      else Hashtbl.add table v None; eval_dec t scope
+    | Assign (v, Asgmt, decs) ->
+      if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
+      else Hashtbl.add table v (Some (eval_expr decs scope)); eval_dec t scope
     | _ -> failwith "Invalid declaration expression."
 
 let rec eval_statements statements scope = match statements with
@@ -124,7 +132,7 @@ let rec eval_prog prog scope = match prog with
 
 let _ =
   let prog = Lexing.from_channel stdin |> Parser.prog Lexer.read in
-  let return = eval_prog prog @@ Hashtbl.create hash_size in
+  let return = eval_prog prog @@ [Hashtbl.create hash_size] in
   match return with
   | None -> print_string "No return.\n"
   | Some v -> print_string @@ string_of_int v ^ "\n"
