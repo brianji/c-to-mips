@@ -34,9 +34,10 @@ and expr =
   | Value of value
   | Paren of expr
   | FunctionCall of id * (expr list)
+  | Assign of id * inop * expr
   | Infix of expr * inop * expr
-  | Prefix of endop * id
-  | Postfix of id * endop
+  | Prefix of endop * expr
+  | Postfix of expr * endop
 and inop =
   | Plus
   | Minus

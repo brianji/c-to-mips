@@ -206,7 +206,7 @@ expr0:
   ;
 expr1:
   | function_call { $1 }
-  | var op1 { Postfix ($1, $2) }
+  | expr0 op1 { Postfix ($1, $2) }
   | expr0 { $1 }
   ;
 op1:
@@ -214,7 +214,7 @@ op1:
   | DEC { Decrmt }
   ;
 expr2:
-  | op2 var { Prefix ($1, $2) }
+  | op2 expr1 { Prefix ($1, $2) }
   | expr1 { $1 }
   ;
 op2:

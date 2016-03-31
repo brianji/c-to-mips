@@ -73,8 +73,8 @@ let rec expr_string = function
       | _ -> " " ^ inop_string i ^ " "
     in
     expr_string e1 ^ op_string ^ expr_string e2
-  | Prefix (e, id) -> endop_string e ^ id
-  | Postfix (id, e) -> id ^ endop_string e
+  | Prefix (op, e) -> endop_string op ^ expr_string e
+  | Postfix (e, op) -> expr_string e ^ endop_string op
 and args_string = function
   | [] -> ""
   | [h] -> expr_string h
