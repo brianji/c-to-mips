@@ -16,7 +16,9 @@ let rec eval_expr expr table = match expr with
   | Prefix (op, e) -> eval_prefix (op, e) table
   | Postfix (e, op) -> eval_postfix (e, op) table
 and eval_var v table =
-  try Hashtbl.find table v
+  try match Hashtbl.find table v with
+    | None -> raise Not_found
+    | Some s -> s
   with Not_found -> failwith @@ v ^ " not declared."
 and eval_value v = match v with
   | Integer i -> i
@@ -48,7 +50,10 @@ and eval_infix (e1, op, e2) table =
   | Comma -> v2
 and eval_assign (id, op, e) table =
   try
-    let curr = Hashtbl.find table id in
+    let curr = match Hashtbl.find table id with
+      | None -> raise Not_found
+      | Some s -> s
+    in
     let v = eval_expr e table in
     let x = match op with
       | Asgmt -> v
@@ -62,7 +67,7 @@ and eval_assign (id, op, e) table =
       | BitAndA -> v land curr
       | BitOrA -> v lor curr
       | BitXorA -> v lxor curr
-    in Hashtbl.replace table id x; x
+    in Hashtbl.replace table id (Some x); x
   with Not_found -> failwith @@ id ^ " not declared."
 and eval_prefix (op, e) table =
   let v = eval_expr e table in
@@ -83,10 +88,10 @@ let rec eval_dec e table = match e with
   | h :: t -> match h with
     | Var v ->
       if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
-      else Hashtbl.add table v 0; eval_dec t table
+      else Hashtbl.add table v None; eval_dec t table
     | Assign (v, Asgmt, e) ->
       if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
-      else Hashtbl.add table v (eval_expr e table); eval_dec t table
+      else Hashtbl.add table v (Some (eval_expr e table)); eval_dec t table
     | _ -> failwith "Invalid declaration expression."
 
 let rec eval_statements statements table = match statements with
