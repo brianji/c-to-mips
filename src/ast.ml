@@ -34,8 +34,8 @@ and expr =
   | Value of value
   | Paren of expr
   | FunctionCall of id * (expr list)
-  | Assign of id * inop * expr
   | Infix of expr * inop * expr
+  | Assign of expr * asop * expr
   | Prefix of endop * expr
   | Postfix of expr * endop
 and inop =
@@ -44,7 +44,6 @@ and inop =
   | Times
   | Divide
   | Mod
-  | Asgmt
   | ShiftLeft
   | ShiftRight
   | Less
@@ -58,6 +57,9 @@ and inop =
   | BitOr
   | And
   | Or
+  | Comma
+and asop =
+  | Asgmt
   | PlusA
   | MinusA
   | TimesA
@@ -68,7 +70,6 @@ and inop =
   | BitAndA
   | BitOrA
   | BitXorA
-  | Comma
 and endop =
   | Incrmt
   | Decrmt

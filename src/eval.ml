@@ -26,7 +26,6 @@ and eval_infix (e1, op, e2) table =
   | Times -> v1 * v2
   | Divide -> v1 / v2
   | Mod -> v1 mod v2
-  | Asgmt -> v2 (* TODO: incomplete *)
   | ShiftLeft -> v1 lsl v2
   | ShiftRight -> v1 lsr v2
   | Less -> v1 < v2 |> int_of_bool
@@ -42,7 +41,6 @@ and eval_infix (e1, op, e2) table =
   | And -> (bool_of_int v1 && bool_of_int v2) |> int_of_bool
   | Or -> (bool_of_int v1 || bool_of_int v2) |> int_of_bool
   | Comma -> v2
-  | _ -> failwith "Operation unsupported."
 and eval_prefix (op, e) table =
   let v = eval_expr e table in
   match op with
