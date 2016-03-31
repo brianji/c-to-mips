@@ -54,7 +54,9 @@ and eval_infix (e1, op, e2) scope =
   | Comma -> v2
 and eval_assign (id, op, e) scope =
   try
-    let curr = eval_var id scope in
+    let curr = match op with
+      | Asgmt -> 0 (* unused *)
+      | _ -> eval_var id scope in
     let rhs = eval_expr e scope in
     let res = match op with
       | Asgmt -> rhs
@@ -119,8 +121,13 @@ and eval_statement statement scope = match statement with
   | Block b -> eval_statements b scope
   | While (e, s) -> None
   | For ((e1, e2, e3), s) -> None
-  | If (e, s) -> None
+  | If (e, s) -> eval_if (e, s) scope
   | IfElse (e, s1, s2) -> None
+and eval_if (cond, statement) scope =
+  if eval_expr cond scope != 0 then
+    eval_statement statement ((Hashtbl.create hash_size) :: scope)
+  else
+    None
 
 (* TODO: ignoring params because of one function *)
 let eval_func (return, id, params, block) scope = eval_statement block scope
