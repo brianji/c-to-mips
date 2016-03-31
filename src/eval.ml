@@ -1,6 +1,6 @@
 open Ast
 
-let hash_size = 100
+let hash_size = 20
 
 let bool_of_int i = if i = 0 then false else true
 let int_of_bool b = if b then 1 else 0
