@@ -9,6 +9,7 @@ let rec eval_expr expr table = match expr with
   | Empty -> failwith "Empty expression."
   | Value v -> eval_value v
   | Infix (e1, op, e2) -> eval_infix (e1, op, e2) table
+  | Assign (id, op, e) -> eval_assign (id, op, e) table
   | Prefix (op, e) -> eval_prefix (op, e) table
   | Postfix (e, op) -> eval_postfix (e, op) table
   | _ -> failwith "Expression unsupported."
@@ -16,7 +17,6 @@ and eval_value v = match v with
   | Integer i -> i
   | Decimal d -> int_of_float d
   | Letter l -> int_of_char l
-  (* TODO: support more than integer arithmetic *)
 and eval_infix (e1, op, e2) table =
   let v1 = eval_expr e1 table in
   let v2 = eval_expr e2 table in
@@ -41,6 +41,12 @@ and eval_infix (e1, op, e2) table =
   | And -> (bool_of_int v1 && bool_of_int v2) |> int_of_bool
   | Or -> (bool_of_int v1 || bool_of_int v2) |> int_of_bool
   | Comma -> v2
+and eval_assign (id, op, e) table =
+  let v = eval_expr e table in
+  (* TODO: finish assignment *)
+  match op with
+  | Asgmt -> v
+  | _ -> failwith "Assignment operator not supported."
 and eval_prefix (op, e) table =
   let v = eval_expr e table in
   match op with
