@@ -121,5 +121,5 @@ let _ =
   let prog = Lexing.from_channel stdin |> Parser.prog Lexer.read in
   let return = eval_prog prog @@ Hashtbl.create hash_size in
   match return with
-  | None -> print_string "No return."; print_newline ()
-  | Some v -> print_int v; print_newline ()
+  | None -> print_string "No return.\n"
+  | Some v -> print_string @@ string_of_int v ^ "\n"
