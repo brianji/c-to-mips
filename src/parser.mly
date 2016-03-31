@@ -172,7 +172,7 @@ decs:
   ;
 dec:
   | var { Var $1 }
-  | var ASSIGN expr14 { Assign (Var $1, Asgmt, $3) }
+  | var ASSIGN expr14 { Assign ($1, Asgmt, $3) }
   ;
 return_statement:
   | RETURN expr SEMICOLON { ReturnExpr $2 }
@@ -290,7 +290,7 @@ expr13:
   | expr12 { $1 } /* TODO: ternary operator */
   ;
 expr14:
-  | var op14 expr14 { Assign (Var $1, $2, $3) }
+  | var op14 expr14 { Assign ($1, $2, $3) }
   | expr13 { $1 }
   ;
 op14:

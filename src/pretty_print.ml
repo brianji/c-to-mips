@@ -75,9 +75,7 @@ let rec expr_string = function
       | _ -> " " ^ inop_string i ^ " "
     in
     expr_string e1 ^ op_string ^ expr_string e2
-  | Assign (e1, i, e2) ->
-    let op_string = " " ^ asop_string i ^ " " in
-    expr_string e1 ^ op_string ^ expr_string e2
+  | Assign (e1, i, e2) -> e1 ^ " " ^ asop_string i ^ " " ^ expr_string e2
   | Prefix (op, e) -> endop_string op ^ expr_string e
   | Postfix (e, op) -> expr_string e ^ endop_string op
 and args_string = function

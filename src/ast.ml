@@ -35,7 +35,7 @@ and expr =
   | Paren of expr
   | FunctionCall of id * (expr list)
   | Infix of expr * inop * expr
-  | Assign of expr * asop * expr
+  | Assign of id * asop * expr
   | Prefix of endop * expr
   | Postfix of expr * endop
 and inop =
