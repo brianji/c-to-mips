@@ -75,8 +75,8 @@ and eval_assign (id, op, e) scope =
 and eval_prefix (op, e) scope =
   let v = eval_expr e scope in
   match op with
-  | Incrmt -> v + 1
-  | Decrmt -> v - 1
+  | Incrmt -> eval_incr e scope; v + 1
+  | Decrmt -> eval_decr e scope; v - 1
   | Not -> not @@ bool_of_int v |> int_of_bool
   | Comp -> lnot v
   | Pos -> v
@@ -84,9 +84,21 @@ and eval_prefix (op, e) scope =
 and eval_postfix (e, op) scope =
   let v = eval_expr e scope in
   match op with
-  | Incrmt -> v
-  | Decrmt -> v
+  | Incrmt -> eval_incr e scope; v
+  | Decrmt -> eval_decr e scope; v
   | _ -> failwith "Invalid postfix operator."
+and eval_incr e scope = match e with
+  | Var v ->
+    let curr = eval_expr e scope + 1 in
+    let table = List.find (fun a -> Hashtbl.mem a v) scope in
+    Hashtbl.replace table v (Some curr)
+  | _ -> failwith "Increment requires variable."
+and eval_decr e scope = match e with
+  | Var v ->
+    let curr = eval_expr e scope - 1 in
+    let table = List.find (fun a -> Hashtbl.mem a v) scope in
+    Hashtbl.replace table v (Some curr)
+  | _ -> failwith "Increment requires variable."
 
 let rec eval_dec decs scope = match decs with
   | [] -> ()
