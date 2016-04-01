@@ -79,11 +79,13 @@ and eval_prefix (op, e) scope =
   | Decrmt -> v - 1
   | Not -> not @@ bool_of_int v |> int_of_bool
   | Comp -> lnot v
+  | Pos -> v
+  | Neg -> -v
 and eval_postfix (e, op) scope =
   let v = eval_expr e scope in
   match op with
-  | Incrmt -> v + 1
-  | Decrmt -> v - 1
+  | Incrmt -> v
+  | Decrmt -> v
   | _ -> failwith "Invalid postfix operator."
 
 let rec eval_dec decs scope = match decs with
