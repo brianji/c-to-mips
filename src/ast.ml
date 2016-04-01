@@ -75,3 +75,5 @@ and endop =
   | Decrmt
   | Not
   | Comp
+  | Pos
+  | Neg

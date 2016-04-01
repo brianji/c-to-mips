@@ -222,6 +222,8 @@ op2:
   | DEC { Decrmt }
   | NOT { Not }
   | COMP { Comp }
+  | PLUS { Pos }
+  | MINUS { Neg }
   ;
 expr3:
   | expr3 op3 expr2 { Infix ($1, $2, $3) }
