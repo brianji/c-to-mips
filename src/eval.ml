@@ -29,29 +29,27 @@ and eval_value v = match v with
   | Decimal d -> int_of_float d
   | Letter l -> int_of_char l
 and eval_infix (e1, op, e2) scope =
-  let v1 = eval_expr e1 scope in
-  let v2 = eval_expr e2 scope in
+  let lv = eval_expr e1 scope in
   match op with
-  | Plus -> v1 + v2
-  | Minus -> v1 - v2
-  | Times -> v1 * v2
-  | Divide -> v1 / v2
-  | Mod -> v1 mod v2
-  | ShiftLeft -> v1 lsl v2
-  | ShiftRight -> v1 lsr v2
-  | Less -> v1 < v2 |> int_of_bool
-  | LesserEq -> v1 <= v2 |> int_of_bool
-  | Greater -> v1 > v2 |> int_of_bool
-  | GreaterEq -> v1 >= v2 |> int_of_bool
-  | Equals -> v1 == v2 |> int_of_bool
-  | NotEquals -> v1 != v2 |> int_of_bool
-  | BitAnd -> v1 land v2
-  | BitXor -> v1 lxor v2
-  | BitOr -> v1 lor v2
-  (* TODO: short circuit *)
-  | And -> (bool_of_int v1 && bool_of_int v2) |> int_of_bool
-  | Or -> (bool_of_int v1 || bool_of_int v2) |> int_of_bool
-  | Comma -> v2
+  | Plus -> lv + (eval_expr e2 scope)
+  | Minus -> lv - (eval_expr e2 scope)
+  | Times -> lv * (eval_expr e2 scope)
+  | Divide -> lv / (eval_expr e2 scope)
+  | Mod -> lv mod (eval_expr e2 scope)
+  | ShiftLeft -> lv lsl (eval_expr e2 scope)
+  | ShiftRight -> lv lsr (eval_expr e2 scope)
+  | Less -> lv < (eval_expr e2 scope) |> int_of_bool
+  | LesserEq -> lv <= (eval_expr e2 scope) |> int_of_bool
+  | Greater -> lv > (eval_expr e2 scope) |> int_of_bool
+  | GreaterEq -> lv >= (eval_expr e2 scope) |> int_of_bool
+  | Equals -> lv == (eval_expr e2 scope) |> int_of_bool
+  | NotEquals -> lv != (eval_expr e2 scope) |> int_of_bool
+  | BitAnd -> lv land (eval_expr e2 scope)
+  | BitXor -> lv lxor (eval_expr e2 scope)
+  | BitOr -> lv lor (eval_expr e2 scope)
+  | And -> (bool_of_int lv && bool_of_int (eval_expr e2 scope)) |> int_of_bool
+  | Or -> (bool_of_int lv || bool_of_int (eval_expr e2 scope)) |> int_of_bool
+  | Comma -> (eval_expr e2 scope)
 and eval_assign (id, op, e) scope =
   try
     let curr = match op with
