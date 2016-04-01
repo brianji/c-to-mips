@@ -1,5 +1,11 @@
 open Ast
 
+type statement_result =
+  | NoRes
+  | RetRes of int
+  | BrkRes
+  | ContRes
+
 let hash_size = 20
 
 let bool_of_int i = if i = 0 then false else true
@@ -116,65 +122,77 @@ let rec eval_dec decs scope = match decs with
       else Hashtbl.add table v (Some (eval_expr decs scope)); eval_dec t scope
     | _ -> failwith "Invalid declaration expression."
 
-let rec eval_statements statements scope = match statements with
-  | [] -> None
+let rec eval_statements statements scope inloop = match statements with
+  | [] -> NoRes
   | h :: t ->
-    let result = eval_statement h scope in
+    let result = eval_statement h scope inloop in
     match result with
-    | None -> eval_statements t scope
+    | NoRes -> eval_statements t scope inloop
     | _ -> result
-and eval_statement statement scope = match statement with
-  | Dec (p, decs) -> let () = eval_dec decs scope in None
-  | Expr e -> let _ = eval_expr e scope in None
-  | Return -> None
-  | ReturnExpr e -> Some (eval_expr e scope)
-  | Break -> None
-  | Continue -> None
-  | Block b -> eval_statements b scope
-  | While (e, s) -> eval_while (e, s) (Hashtbl.create hash_size :: scope)
+and eval_statement statement scope inloop = match statement with
+  | Dec (p, decs) -> let () = eval_dec decs scope in NoRes
+  | Expr e -> let _ = eval_expr e scope in NoRes
+  | Return -> NoRes
+  | ReturnExpr e -> RetRes (eval_expr e scope)
+  | Break -> BrkRes
+  | Continue -> ContRes
+  | Block b -> eval_statements b scope inloop
+  | While (e, s) ->
+    eval_while (e, s) (Hashtbl.create hash_size :: scope) inloop
   | For ((e1, e2, e3), s) ->
     let new_scope = Hashtbl.create hash_size :: scope in
     let _ = eval_expr e1 new_scope in
-    eval_for e2 e3 s new_scope
-  | If (e, s) -> eval_if (e, s) scope
-  | IfElse (e, s1, s2) -> eval_if_else (e, s1, s2) scope
-and eval_while (cond, statement) scope =
+    eval_for e2 e3 s new_scope inloop
+  | If (e, s) -> eval_if (e, s) scope inloop
+  | IfElse (e, s1, s2) -> eval_if_else (e, s1, s2) scope inloop
+and eval_while (cond, statement) scope inloop =
   if eval_expr cond scope != 0 then
-    let res = eval_statement statement scope in
+    let res = eval_statement statement scope true in
     match res with
-    | None -> eval_while (cond, statement) scope
+    | NoRes -> eval_while (cond, statement) scope inloop
+    | ContRes -> eval_while (cond, statement) scope inloop
+    | BrkRes -> NoRes
     | _ -> res
   else
-    None
-and eval_for cond inc statement scope =
+    NoRes
+and eval_for cond inc statement scope inloop  =
   if eval_expr cond scope != 0 then
-    let res = eval_statement statement scope in
+    let res = eval_statement statement scope true in
     match res with
-    | None ->
+    | NoRes ->
       let _ = eval_expr inc scope in
-      eval_for cond inc statement scope
+      eval_for cond inc statement scope inloop
+    | ContRes ->
+      let _ = eval_expr inc scope in
+      eval_for cond inc statement scope inloop
+    | BrkRes -> NoRes
     | _ -> res
   else
-    None
-and eval_if (cond, statement) scope =
+    NoRes
+and eval_if (cond, statement) scope inloop =
   let new_scope = Hashtbl.create hash_size :: scope in
-  if eval_expr cond scope != 0 then eval_statement statement new_scope else None
-and eval_if_else (cond, s1, s2) scope =
+  if eval_expr cond scope != 0 then
+    eval_statement statement new_scope inloop
+  else
+    NoRes
+and eval_if_else (cond, s1, s2) scope inloop =
   let new_scope = Hashtbl.create hash_size :: scope in
   let block = if eval_expr cond scope != 0 then s1 else s2 in
-  eval_statement block new_scope
+  eval_statement block new_scope inloop
 
 (* TODO: ignoring params because of one function *)
-let eval_func (return, id, params, block) scope = eval_statement block scope
+let eval_func (return, id, params, block) scope =
+  eval_statement block scope false
 
 (* TODO: support multiple functions *)
 let rec eval_prog prog scope = match prog with
-  | [] -> None
+  | [] -> NoRes
   | h :: _ -> eval_func h scope
 
 let _ =
   let prog = Lexing.from_channel stdin |> Parser.prog Lexer.read in
   let return = eval_prog prog @@ [Hashtbl.create hash_size] in
   match return with
-  | None -> print_string "No return.\n"
-  | Some v -> print_string @@ string_of_int v ^ "\n"
+  | NoRes -> print_string "No return.\n"
+  | RetRes v -> print_string @@ string_of_int v ^ "\n"
+  | _ -> failwith "Break or continue not inside loop or switch."
