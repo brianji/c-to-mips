@@ -140,15 +140,20 @@ and eval_statement statement scope = match statement with
   | IfElse (e, s1, s2) -> eval_if_else (e, s1, s2) scope
 and eval_while (cond, statement) scope =
   if eval_expr cond scope != 0 then
-    let _ = eval_statement statement scope in
-    eval_while (cond, statement) scope
+    let res = eval_statement statement scope in
+    match res with
+    | None -> eval_while (cond, statement) scope
+    | _ -> res
   else
     None
 and eval_for cond inc statement scope =
   if eval_expr cond scope != 0 then
-    let _ = eval_statement statement scope in
-    let _ = eval_expr inc scope in
-    eval_for cond inc statement scope
+    let res = eval_statement statement scope in
+    match res with
+    | None ->
+      let _ = eval_expr inc scope in
+      eval_for cond inc statement scope
+    | _ -> res
   else
     None
 and eval_if (cond, statement) scope =
