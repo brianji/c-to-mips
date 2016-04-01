@@ -121,8 +121,8 @@ let rec eval_statements statements scope = match statements with
   | h :: t ->
     let result = eval_statement h scope in
     match result with
-    | Some v -> Some v
     | None -> eval_statements t scope
+    | _ -> result
 and eval_statement statement scope = match statement with
   | Dec (p, decs) -> let () = eval_dec decs scope in None
   | Expr e -> let _ = eval_expr e scope in None
@@ -132,13 +132,23 @@ and eval_statement statement scope = match statement with
   | Continue -> None
   | Block b -> eval_statements b scope
   | While (e, s) -> eval_while (e, s) (Hashtbl.create hash_size :: scope)
-  | For ((e1, e2, e3), s) -> None
+  | For ((e1, e2, e3), s) ->
+    let new_scope = Hashtbl.create hash_size :: scope in
+    let _ = eval_expr e1 new_scope in
+    eval_for e2 e3 s new_scope
   | If (e, s) -> eval_if (e, s) scope
   | IfElse (e, s1, s2) -> eval_if_else (e, s1, s2) scope
 and eval_while (cond, statement) scope =
   if eval_expr cond scope != 0 then
     let _ = eval_statement statement scope in
     eval_while (cond, statement) scope
+  else
+    None
+and eval_for cond inc statement scope =
+  if eval_expr cond scope != 0 then
+    let _ = eval_statement statement scope in
+    let _ = eval_expr inc scope in
+    eval_for cond inc statement scope
   else
     None
 and eval_if (cond, statement) scope =
