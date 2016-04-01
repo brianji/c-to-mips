@@ -48,6 +48,8 @@ let endop_string = function
   | Decrmt -> "--"
   | Not -> "!"
   | Comp -> "~"
+  | Pos -> "+"
+  | Neg -> "-"
 
 let value_string = function
   | Integer i -> string_of_int i
