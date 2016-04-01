@@ -117,10 +117,16 @@ and eval_statement statement scope = match statement with
   | Break -> None
   | Continue -> None
   | Block b -> eval_statements b scope
-  | While (e, s) -> None
+  | While (e, s) -> eval_while (e, s) (Hashtbl.create hash_size :: scope)
   | For ((e1, e2, e3), s) -> None
   | If (e, s) -> eval_if (e, s) scope
   | IfElse (e, s1, s2) -> eval_if_else (e, s1, s2) scope
+and eval_while (cond, statement) scope =
+  if eval_expr cond scope != 0 then
+    let _ = eval_statement statement scope in
+    eval_while (cond, statement) scope
+  else
+    None
 and eval_if (cond, statement) scope =
   let new_scope = Hashtbl.create hash_size :: scope in
   if eval_expr cond scope != 0 then eval_statement statement new_scope else None
