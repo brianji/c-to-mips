@@ -186,10 +186,7 @@ let eval_func (return, id, params, block) scope =
 
 (* TODO: support multiple functions *)
 let rec eval_prog prog scope =
-  try
-    let is_main = function (_, id, _, _) -> id = "main" in
-    let main = List.find is_main prog in
-    eval_func main scope
+  try eval_func (List.find (fun (_, id, _, _) -> id = "main") prog) scope
   with Not_found -> failwith "main function not found."
 
 let _ =
