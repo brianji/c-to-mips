@@ -181,18 +181,16 @@ and eval_if_else (cond, s1, s2) scope =
   eval_statement block new_scope
 
 (* TODO: ignoring params because of one function *)
-let eval_func (return, id, params, block) scope =
-  eval_statement block scope
+let eval_func (return, id, params, block) args =
+  eval_statement block [Hashtbl.create hash_size]
 
 (* TODO: support multiple functions *)
-let rec eval_prog prog scope =
-  try eval_func (List.find (fun (_, id, _, _) -> id = "main") prog) scope
+let rec eval_prog prog =
+  try eval_func (List.find (fun (_, id, _, _) -> id = "main") prog)
   with Not_found -> failwith "main function not found."
 
 let _ =
-  let prog = Lexing.from_channel stdin |> Parser.prog Lexer.read in
-  let return = eval_prog prog @@ [Hashtbl.create hash_size] in
-  match return with
+  match Lexing.from_channel stdin |> Parser.prog Lexer.read |> eval_prog with
   | NoRes -> print_string "No return.\n"
   | RetRes v -> print_string @@ string_of_int v ^ "\n"
   | _ -> failwith "Break or continue not inside loop or switch."
