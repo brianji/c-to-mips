@@ -185,9 +185,12 @@ let eval_func (return, id, params, block) scope =
   eval_statement block scope
 
 (* TODO: support multiple functions *)
-let rec eval_prog prog scope = match prog with
-  | [] -> NoRes
-  | h :: _ -> eval_func h scope
+let rec eval_prog prog scope =
+  try
+    let is_main = function (_, id, _, _) -> id = "main" in
+    let main = List.find is_main prog in
+    eval_func main scope
+  with Not_found -> failwith "main function not found."
 
 let _ =
   let prog = Lexing.from_channel stdin |> Parser.prog Lexer.read in
