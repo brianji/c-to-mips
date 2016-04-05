@@ -12,7 +12,7 @@ let bool_of_int i = if i = 0 then false else true
 let int_of_bool b = if b then 1 else 0
 
 let rec eval_expr expr scope = match expr with
-  | Empty -> failwith "Empty expression."
+  | Empty -> failwith "Empty expression." (* TODO: for loop empty expression *)
   | Var v -> eval_var v scope
   | Value v -> eval_value v
   | Paren e -> eval_expr e scope
@@ -30,12 +30,12 @@ and eval_var var scope = match scope with
       | None -> failwith @@ var ^ " not initialized."
       | Some s -> s
     else eval_var var t
-and eval_value v = match v with
+and eval_value v = match v with (* TODO: support other types *)
   | Integer i -> i
   | Decimal d -> int_of_float d
   | Letter l -> int_of_char l
 and eval_infix (e1, op, e2) scope =
-  let lv = eval_expr e1 scope in
+  let lv = eval_expr e1 scope in (* can evaluate this ahead of time *)
   match op with
   | Plus -> lv + (eval_expr e2 scope)
   | Minus -> lv - (eval_expr e2 scope)
@@ -55,25 +55,22 @@ and eval_infix (e1, op, e2) scope =
   | BitOr -> lv lor (eval_expr e2 scope)
   | And -> (bool_of_int lv && bool_of_int (eval_expr e2 scope)) |> int_of_bool
   | Or -> (bool_of_int lv || bool_of_int (eval_expr e2 scope)) |> int_of_bool
-  | Comma -> (eval_expr e2 scope)
+  | Comma -> eval_expr e2 scope
 and eval_assign (id, op, e) scope =
   try
-    let curr = match op with
-      | Asgmt -> 0 (* unused *)
-      | _ -> eval_var id scope in
     let rhs = eval_expr e scope in
     let res = match op with
       | Asgmt -> rhs
-      | PlusA -> rhs + curr
-      | MinusA -> rhs - curr
-      | TimesA -> rhs * curr
-      | DivideA -> rhs / curr
-      | ModA -> rhs mod curr
-      | ShiftLeftA -> rhs lsl curr
-      | ShiftRightA -> rhs lsr curr
-      | BitAndA -> rhs land curr
-      | BitOrA -> rhs lor curr
-      | BitXorA -> rhs lxor curr
+      | PlusA -> rhs + (eval_var id scope)
+      | MinusA -> rhs - (eval_var id scope)
+      | TimesA -> rhs * (eval_var id scope)
+      | DivideA -> rhs / (eval_var id scope)
+      | ModA -> rhs mod (eval_var id scope)
+      | ShiftLeftA -> rhs lsl (eval_var id scope)
+      | ShiftRightA -> rhs lsr (eval_var id scope)
+      | BitAndA -> rhs land (eval_var id scope)
+      | BitOrA -> rhs lor (eval_var id scope)
+      | BitXorA -> rhs lxor (eval_var id scope)
     in
     let table = List.find (fun a -> Hashtbl.mem a id) scope
     in Hashtbl.replace table id (Some res); res
@@ -124,11 +121,9 @@ let rec eval_dec decs scope = match decs with
 
 let rec eval_statements statements scope = match statements with
   | [] -> NoRes
-  | h :: t ->
-    let result = eval_statement h scope in
-    match result with
+  | h :: t -> match eval_statement h scope with
     | NoRes -> eval_statements t scope
-    | _ -> result
+    | other -> other
 and eval_statement statement scope = match statement with
   | Dec (p, decs) -> let () = eval_dec decs scope in NoRes
   | Expr e -> let _ = eval_expr e scope in NoRes
@@ -147,18 +142,16 @@ and eval_statement statement scope = match statement with
   | IfElse (e, s1, s2) -> eval_if_else (e, s1, s2) scope
 and eval_while (cond, statement) scope =
   if eval_expr cond scope != 0 then
-    let res = eval_statement statement scope in
-    match res with
+    match eval_statement statement scope with
     | NoRes -> eval_while (cond, statement) scope
     | ContRes -> eval_while (cond, statement) scope
     | BrkRes -> NoRes
-    | _ -> res
+    | other -> other
   else
     NoRes
 and eval_for cond inc statement scope =
   if eval_expr cond scope != 0 then
-    let res = eval_statement statement scope in
-    match res with
+    match eval_statement statement scope  with
     | NoRes ->
       let _ = eval_expr inc scope in
       eval_for cond inc statement scope
@@ -166,7 +159,7 @@ and eval_for cond inc statement scope =
       let _ = eval_expr inc scope in
       eval_for cond inc statement scope
     | BrkRes -> NoRes
-    | _ -> res
+    | other -> other
   else
     NoRes
 and eval_if (cond, statement) scope =
