@@ -1,10 +1,12 @@
-type prog = func list
-and func = return * id * (param list) * statement
+type prog = prog_elmt list
+and prog_elmt =
+  | Func of func
+  | Global of dec
+and func = prim * id * (param list) * statement
+and dec = prim * (expr list)
 and id = string
-and return =
-  | Void
-  | Prim of prim
 and prim =
+  | Void
   | Int
   | Float
   | Char
@@ -15,7 +17,7 @@ and value =
 and param = prim * id
 and statement =
   | Expr of expr
-  | Dec of prim * (expr list)
+  | Dec of dec
   | Return
   | ReturnExpr of expr
   | Break

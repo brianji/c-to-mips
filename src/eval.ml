@@ -179,7 +179,14 @@ let eval_func (return, id, params, block) args =
 
 (* TODO: support multiple functions *)
 let rec eval_prog prog =
-  try eval_func (List.find (fun (_, id, _, _) -> id = "main") prog) []
+  let find_main = function
+    | Global _ -> false
+    | Func (_, id, _, _) -> id = "main"
+  in
+  try 
+  match List.find find_main prog with
+  | Func f -> eval_func f []
+  | Global _ -> failwith "Global variable is not main function."
   with Not_found -> failwith "main function not found."
 
 let _ =

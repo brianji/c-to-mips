@@ -6,10 +6,13 @@ let prim_string = function
   | Int -> "int"
   | Float -> "float"
   | Char -> "char"
+  | Void -> failwith "Void invalid variable type."
 
 let return_string = function
+  | Int -> "int"
+  | Float -> "float"
+  | Char -> "char"
   | Void -> "void"
-  | Prim p -> prim_string p
 
 let inop_string = function
   | Plus -> "+"
@@ -133,7 +136,7 @@ and statement_string statement indent = match statement with
       ^ end_string
 
 let function_string (return, id, params, block) =
-  return_string return
+  prim_string return
     ^ " "
     ^ id
     ^ "("
@@ -142,9 +145,13 @@ let function_string (return, id, params, block) =
     ^ statement_string block 0
     ^ "\n"
 
+let prog_elmt_string = function
+  | Func f -> function_string f
+  | Global (p, g) -> prim_string p ^ " " ^ decs_string g ^ ";\n"
+
 let rec prog_string = function
   | [] -> ""
-  | h :: t -> function_string h ^ prog_string t
+  | h :: t -> prog_elmt_string h ^ prog_string t
 
 let _ =
   let s = Lexing.from_channel stdin |> Parser.prog Lexer.read |> prog_string

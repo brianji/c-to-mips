@@ -115,14 +115,27 @@
 %type <Ast.prog> prog
 %%
 prog:
-  | functions EOF { $1 }
+  | prog_elmts EOF { $1 }
   ;
-functions:
+prog_elmts:
   | { [] }
-  | func functions { $1 :: $2 }
+  | prog_elmt prog_elmts { $1 :: $2 }
   ;
-func:
-  | return ID LEFT_PAREN params RIGHT_PAREN block { ($1, $2, $4, $6) }
+prog_elmt:
+  | prim ID LEFT_PAREN params RIGHT_PAREN block { Func ($1, $2, $4, $6) }
+  | dec_stmt { Global $1 }
+  ;
+dec_stmt:
+  | prim decs SEMICOLON { ($1, $2) }
+  ;
+decs:
+  | { [] }
+  | dec { [$1] }
+  | dec COMMA decs { $1 :: $3 }
+  ;
+dec:
+  | var { Var $1 }
+  | var ASSIGN expr14 { Assign ($1, Asgmt, $3) }
   ;
 block:
   | LEFT_BRACE statements RIGHT_BRACE { Block $2 }
@@ -130,11 +143,8 @@ block:
 condition:
   | LEFT_PAREN expr RIGHT_PAREN { $2 }
   ;
-return:
-  | VOID { Void }
-  | prim { Prim $1 }
-  ;
 prim:
+  | VOID { Void }
   | CHAR { Char }
   | INT { Int }
   | FLOAT { Float }
@@ -154,7 +164,7 @@ statements:
   | statement statements { $1 :: $2 }
   ;
 statement:
-  | prim decs SEMICOLON { Dec ($1, $2) }
+  | dec_stmt { Dec $1 }
   | expr SEMICOLON { Expr $1 }
   | return_statement { $1 }
   | BREAK SEMICOLON { Break }
@@ -164,15 +174,6 @@ statement:
   | FOR LEFT_PAREN for_control RIGHT_PAREN statement { For ($3, $5) }
   | IF condition statement %prec IFX { If ($2, $3) }
   | IF condition statement ELSE statement { IfElse ($2, $3, $5) }
-  ;
-decs:
-  | { [] }
-  | dec { [$1] }
-  | dec COMMA decs { $1 :: $3 }
-  ;
-dec:
-  | var { Var $1 }
-  | var ASSIGN expr14 { Assign ($1, Asgmt, $3) }
   ;
 return_statement:
   | RETURN expr SEMICOLON { ReturnExpr $2 }
