@@ -1,5 +1,5 @@
-.atom-build.json
-.merlin
+.*
+src/.*
 eval
 pretty_print
 build/*
