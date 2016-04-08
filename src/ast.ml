@@ -22,11 +22,16 @@ and statement =
   | ReturnExpr of expr
   | Break
   | Continue
-  | Block of statement list
-  | While of expr * statement
-  | For of (expr * expr * expr) * statement
-  | If of expr * statement
-  | IfElse of expr * statement * statement
+  | Block of block
+  | While of while_loop
+  | For of for_loop
+  | If of if_statement
+  | IfElse of if_else_statement
+and block = statement list
+and while_loop = expr * statement
+and for_loop = (expr * expr * expr) * statement
+and if_statement = expr * statement
+and if_else_statement = expr * statement * statement
 and dec_expr =
   | DecVar of id
   | InitVar of id * expr
@@ -35,11 +40,16 @@ and expr =
   | Var of id
   | Value of value
   | Paren of expr
-  | FunctionCall of id * (expr list)
-  | Infix of expr * inop * expr
-  | Assign of id * asop * expr
-  | Prefix of endop * expr
-  | Postfix of expr * endop
+  | FunctionCall of function_call
+  | Infix of infix
+  | Assign of assign
+  | Prefix of prefix
+  | Postfix of postfix
+and function_call = id * (expr list)
+and infix = expr * inop * expr
+and assign = id * asop * expr
+and prefix = endop * expr
+and postfix = expr * endop
 and inop =
   | Plus
   | Minus

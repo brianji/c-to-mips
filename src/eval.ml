@@ -16,11 +16,11 @@ let rec eval_expr expr prog scope = match expr with
   | Var v -> eval_var v scope
   | Value v -> eval_value v
   | Paren e -> eval_expr e prog scope
-  | FunctionCall _ -> failwith "Function calls unsupported."
-  | Infix (e1, op, e2) -> eval_infix (e1, op, e2) prog scope
-  | Assign (id, op, e) -> eval_assign (id, op, e) prog scope
-  | Prefix (op, e) -> eval_prefix (op, e) prog scope
-  | Postfix (e, op) -> eval_postfix (e, op) prog scope
+  | FunctionCall f -> failwith "Function calls unsupported."
+  | Infix i -> eval_infix i prog scope
+  | Assign a -> eval_assign a prog scope
+  | Prefix p -> eval_prefix p prog scope
+  | Postfix p -> eval_postfix p prog scope
 and eval_var var scope = match scope with
   | [] -> failwith @@ var ^ " not declared."
   | h :: t ->
@@ -106,7 +106,7 @@ and eval_decr e prog scope = match e with
   | _ -> failwith "Increment requires variable."
 
 let rec eval_dec decs prog scope = match decs with
-  | [] -> ()
+  | [] -> NoRes
   | h :: t ->
     let table = match scope with
       | [] -> failwith "Scope empty."
@@ -129,21 +129,20 @@ let rec eval_statements statements prog scope = match statements with
     | NoRes -> eval_statements t prog scope
     | other -> other
 and eval_statement statement prog scope = match statement with
-  | Dec (p, decs) -> let () = eval_dec decs prog scope in NoRes
+  | Dec (p, decs) -> eval_dec decs prog scope
   | Expr e -> let _ = eval_expr e prog scope in NoRes
   | Return -> NoRes
   | ReturnExpr e -> RetRes (eval_expr e prog scope)
   | Break -> BrkRes
   | Continue -> ContRes
   | Block b -> eval_statements b prog scope
-  | While (e, s) ->
-    eval_while (e, s) prog (Hashtbl.create hash_size :: scope)
+  | While w -> eval_while w prog (Hashtbl.create hash_size :: scope)
   | For ((e1, e2, e3), s) ->
     let new_scope = Hashtbl.create hash_size :: scope in
     let _ = eval_expr e1 new_scope in
     eval_for e2 e3 s prog new_scope
-  | If (e, s) -> eval_if (e, s) prog scope
-  | IfElse (e, s1, s2) -> eval_if_else (e, s1, s2) prog scope
+  | If i -> eval_if i prog scope
+  | IfElse i -> eval_if_else i prog scope
 and eval_while (cond, statement) prog scope =
   if eval_expr cond prog scope != 0 then
     match eval_statement statement prog scope with
