@@ -63,44 +63,44 @@ and eval_function_call (id, args) fcns scope =
   | Invalid_argument _ -> failwith @@ id ^ " invalid number of arguments."
 and eval_infix (e1, op, e2) fcns scope =
   let eval e = eval_int_expr e fcns scope in
-  let lv = eval e1 in (* can evaluate this ahead of time *)
   match op with
-  | Plus -> lv + (eval e2)
-  | Minus -> lv - (eval e2)
-  | Times -> lv * (eval e2)
-  | Divide -> lv / (eval e2)
-  | Mod -> lv mod (eval e2)
-  | ShiftLeft -> lv lsl (eval e2)
-  | ShiftRight -> lv lsr (eval e2)
-  | Less -> lv < (eval e2) |> int_of_bool
-  | LesserEq -> lv <= (eval e2) |> int_of_bool
-  | Greater -> lv > (eval e2) |> int_of_bool
-  | GreaterEq -> lv >= (eval e2) |> int_of_bool
-  | Equals -> lv == (eval e2) |> int_of_bool
-  | NotEquals -> lv != (eval e2) |> int_of_bool
-  | BitAnd -> lv land (eval e2)
-  | BitXor -> lv lxor (eval e2)
-  | BitOr -> lv lor (eval e2)
+  | Plus -> (eval e1) + (eval e2)
+  | Minus -> (eval e1) - (eval e2)
+  | Times -> (eval e1) * (eval e2)
+  | Divide -> (eval e1) / (eval e2)
+  | Mod -> (eval e1) mod (eval e2)
+  | ShiftLeft -> (eval e1) lsl (eval e2)
+  | ShiftRight -> (eval e1) lsr (eval e2)
+  | Less -> (eval e1) < (eval e2) |> int_of_bool
+  | LesserEq -> (eval e1) <= (eval e2) |> int_of_bool
+  | Greater -> (eval e1) > (eval e2) |> int_of_bool
+  | GreaterEq -> (eval e1) >= (eval e2) |> int_of_bool
+  | Equals -> (eval e1) == (eval e2) |> int_of_bool
+  | NotEquals -> (eval e1) != (eval e2) |> int_of_bool
+  | BitAnd -> (eval e1) land (eval e2)
+  | BitXor -> (eval e1) lxor (eval e2)
+  | BitOr -> (eval e1) lor (eval e2)
   | And ->
-    (bool_of_int lv && bool_of_int (eval e2)) |> int_of_bool
+    (bool_of_int (eval e1) && bool_of_int (eval e2)) |> int_of_bool
   | Or ->
-    (bool_of_int lv || bool_of_int (eval e2)) |> int_of_bool
-  | Comma -> eval e2
+    (bool_of_int (eval e1) || bool_of_int (eval e2)) |> int_of_bool
+  | Comma -> let _ = eval_expr e1 fcns scope in eval e2
 and eval_assign (id, op, e) fcns scope =
   try
     let rhs = eval_int_expr e fcns scope in
+    let eval id = eval_var id fcns scope in
     let res = match op with
       | Asgmt -> rhs
-      | PlusA -> rhs + (eval_var id fcns scope)
-      | MinusA -> rhs - (eval_var id fcns scope)
-      | TimesA -> rhs * (eval_var id fcns scope)
-      | DivideA -> rhs / (eval_var id fcns scope)
-      | ModA -> rhs mod (eval_var id fcns scope)
-      | ShiftLeftA -> rhs lsl (eval_var id fcns scope)
-      | ShiftRightA -> rhs lsr (eval_var id fcns scope)
-      | BitAndA -> rhs land (eval_var id fcns scope)
-      | BitOrA -> rhs lor (eval_var id fcns scope)
-      | BitXorA -> rhs lxor (eval_var id fcns scope)
+      | PlusA -> rhs + (eval id)
+      | MinusA -> rhs - (eval id)
+      | TimesA -> rhs * (eval id)
+      | DivideA -> rhs / (eval id)
+      | ModA -> rhs mod (eval id)
+      | ShiftLeftA -> rhs lsl (eval id)
+      | ShiftRightA -> rhs lsr (eval id)
+      | BitAndA -> rhs land (eval id)
+      | BitOrA -> rhs lor (eval id)
+      | BitXorA -> rhs lxor (eval id)
     in
     let table = List.find (fun a -> Hashtbl.mem a id) scope in 
     let () = Hashtbl.replace table id (Some res) in
