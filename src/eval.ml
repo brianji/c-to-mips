@@ -109,8 +109,8 @@ and eval_assign (id, op, e) fcns scope =
 and eval_prefix (op, e) fcns scope =
   let v = eval_int_expr e fcns scope in
   match op with
-  | Incrmt -> eval_incr e fcns scope; v + 1
-  | Decrmt -> eval_decr e fcns scope; v - 1
+  | Incrmt -> let () = eval_incr e fcns scope in v + 1
+  | Decrmt -> let () = eval_decr e fcns scope in v - 1
   | Not -> not @@ bool_of_int v |> int_of_bool
   | Comp -> lnot v
   | Pos -> v
@@ -118,8 +118,8 @@ and eval_prefix (op, e) fcns scope =
 and eval_postfix (e, op) fcns scope =
   let v = eval_int_expr e fcns scope in
   match op with
-  | Incrmt -> eval_incr e fcns scope; v
-  | Decrmt -> eval_decr e fcns scope; v
+  | Incrmt -> let () = eval_incr e fcns scope in v
+  | Decrmt -> let () = eval_decr e fcns scope in v
   | _ -> failwith "Invalid postfix operator."
 and eval_incr e fcns scope = match e with
   | Var v ->
@@ -144,11 +144,11 @@ and eval_dec decs fcns scope = match decs with
     match h with
     | Var v ->
       if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
-      else Hashtbl.add table v None; eval_dec t fcns scope
+      else let () = Hashtbl.add table v None in eval_dec t fcns scope
     | Assign (v, Asgmt, decs) ->
       if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
       else
-        Hashtbl.add table v (Some (eval_int_expr decs fcns scope));
+        let () = Hashtbl.add table v (Some (eval_int_expr decs fcns scope)) in
         eval_dec t fcns scope
     | _ -> failwith "Invalid declaration expression."
 
