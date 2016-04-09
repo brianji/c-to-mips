@@ -16,7 +16,7 @@ let rec eval_expr expr fcns scope = match expr with
   | Var v -> eval_var v fcns scope
   | Value v -> eval_value v
   | Paren e -> eval_expr e fcns scope
-  | FunctionCall f -> failwith "Function calls unsupported."
+  | FunctionCall f -> eval_function_call f fcns scope
   | Infix i -> eval_infix i fcns scope
   | Assign a -> eval_assign a fcns scope
   | Prefix p -> eval_prefix p fcns scope
@@ -33,6 +33,22 @@ and eval_value v = match v with (* TODO: support other types *)
   | Integer i -> i
   | Decimal d -> int_of_float d
   | Letter l -> int_of_char l
+and eval_function_call (id, args) fcns scope =
+  try
+    let fcn = List.find (fun (_, f, _, _) -> String.compare f id = 0) fcns in
+    let params = match fcn with (_, _, p, _) -> p in
+    let table = Hashtbl.create hash_size in
+    let process_arg arg (_, var) = 
+      let value = eval_expr arg fcns scope in
+      Hashtbl.add table var (Some value)
+    in
+    let () = List.iter2 process_arg args params in
+    match eval_func fcn fcns [table] with
+    | RetRes i -> i
+    | _ -> failwith "Function call did not return."
+  with
+  | Not_found -> failwith @@ id ^ " function not found."
+  | Invalid_argument _ -> failwith @@ id ^ " invalid number of arguments."
 and eval_infix (e1, op, e2) fcns scope =
   let lv = eval_expr e1 fcns scope in (* can evaluate this ahead of time *)
   match op with
@@ -104,7 +120,7 @@ and eval_decr e fcns scope = match e with
     Hashtbl.replace table v (Some curr)
   | _ -> failwith "Increment requires variable."
 
-let rec eval_dec decs fcns scope = match decs with
+and eval_dec decs fcns scope = match decs with
   | [] -> NoRes
   | h :: t ->
     let table = match scope with
@@ -122,7 +138,7 @@ let rec eval_dec decs fcns scope = match decs with
         eval_dec t fcns scope
     | _ -> failwith "Invalid declaration expression."
 
-let rec eval_statements statements fcns scope = match statements with
+and eval_statements statements fcns scope = match statements with
   | [] -> NoRes
   | h :: t -> match eval_statement h fcns scope with
     | NoRes -> eval_statements t fcns scope
@@ -138,7 +154,7 @@ and eval_statement statement fcns scope = match statement with
   | While w -> eval_while w fcns (Hashtbl.create hash_size :: scope)
   | For ((e1, e2, e3), s) ->
     let new_scope = Hashtbl.create hash_size :: scope in
-    let _ = eval_expr e1 new_scope in
+    let _ = eval_expr e1 fcns new_scope in
     eval_for e2 e3 s fcns new_scope
   | If i -> eval_if i fcns scope
   | IfElse i -> eval_if_else i fcns scope
@@ -176,8 +192,7 @@ and eval_if_else (cond, s1, s2) fcns scope =
   eval_statement block fcns new_scope
 
 (* TODO: process return type *)
-let eval_func (_, id, params, block) fcns args =
-  eval_statement block fcns [Hashtbl.create hash_size]
+and eval_func (_, _, _, block) fcns scope = eval_statement block fcns scope
 
 let rec eval_prog prog =
   (* TODO: process global variables *)
@@ -188,11 +203,11 @@ let rec eval_prog prog =
   let fcns = List.fold_right get_function prog [] in
   try
     let main = List.find (fun (_, id, _, _) -> id = "main") fcns in
-    eval_func main fcns []
+    eval_func main fcns [Hashtbl.create hash_size]
   with Not_found -> failwith "main function not found."
 
 let _ =
   match Lexing.from_channel stdin |> Parser.prog Lexer.read |> eval_prog with
-  | NoRes -> print_string "No return.\n"
   | RetRes v -> print_string @@ string_of_int v ^ "\n"
+  | NoRes -> failwith "Main did not return integer."
   | _ -> failwith "Break or continue not inside loop or switch."
