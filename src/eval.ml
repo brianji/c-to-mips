@@ -1,6 +1,9 @@
 open Ast
 
-type statement_result =
+type expr_result =
+  | VoidRes
+  | IntRes of int
+and statement_result =
   | NoRes
   | RetRes of int
   | BrkRes
@@ -36,7 +39,7 @@ and eval_value v = match v with (* TODO: support other types *)
 and eval_function_call (id, args) fcns scope =
   try
     let fcn = List.find (fun (_, f, _, _) -> String.compare f id = 0) fcns in
-    let params = match fcn with (_, _, p, _) -> p in
+    let (return, params) = match fcn with (r, _, p, _) -> (r, p) in
     let table = Hashtbl.create hash_size in
     let process_arg arg (_, var) = 
       let value = eval_expr arg fcns scope in
@@ -44,7 +47,9 @@ and eval_function_call (id, args) fcns scope =
     in
     let () = List.iter2 process_arg args params in
     match eval_func fcn fcns [table] with
-    | RetRes i -> i
+    | RetRes i -> (match return with
+      | Void -> failwith @@ "Void function returned value."
+      | _ -> i)
     | _ -> failwith "Function call did not return."
   with
   | Not_found -> failwith @@ id ^ " function not found."
@@ -118,7 +123,7 @@ and eval_decr e fcns scope = match e with
     let curr = eval_expr e fcns scope - 1 in
     let table = List.find (fun a -> Hashtbl.mem a v) scope in
     Hashtbl.replace table v (Some curr)
-  | _ -> failwith "Increment requires variable."
+  | _ -> failwith "Decrement requires variable."
 
 and eval_dec decs fcns scope = match decs with
   | [] -> NoRes
