@@ -14,6 +14,10 @@ let hash_size = 20
 let bool_of_int i = if i = 0 then false else true
 let int_of_bool b = if b then 1 else 0
 
+let rec global_scope fcn fcns = match fcns with
+  | [] -> failwith "Reached end of scope without finding function."
+  | h :: t -> if h = fcn then [h] else h :: global_scope fcn t
+
 let rec eval_expr expr fcns scope = match expr with
   | Empty -> failwith "Empty expression." (* TODO: for loop empty expression *)
   | Var v -> IntRes (eval_var v fcns scope)
@@ -43,13 +47,14 @@ and eval_function_call (id, args) fcns scope =
   try
     let fcn = List.find (fun (_, f, _, _) -> String.compare f id = 0) fcns in
     let (return, params) = match fcn with (r, _, p, _) -> (r, p) in
+    let fcn_scope = global_scope fcn fcns in
     let table = Hashtbl.create hash_size in
-    let process_arg arg (_, var) = 
+    let process_arg arg (_, var) =
       let value = eval_int_expr arg fcns scope in
       Hashtbl.add table var (Some value)
     in
     let () = List.iter2 process_arg args params in
-    match eval_func fcn fcns [table] with
+    match eval_func fcn fcn_scope [table] with
     | RetRes (IntRes i) -> (match return with
         | Void -> failwith @@ "Void function returned value."
         | _ -> IntRes i)
@@ -102,7 +107,7 @@ and eval_assign (id, op, e) fcns scope =
       | BitOrA -> rhs lor (eval id)
       | BitXorA -> rhs lxor (eval id)
     in
-    let table = List.find (fun a -> Hashtbl.mem a id) scope in 
+    let table = List.find (fun a -> Hashtbl.mem a id) scope in
     let () = Hashtbl.replace table id (Some res) in
     res
   with Not_found -> failwith @@ id ^ " not declared."
@@ -217,7 +222,8 @@ let rec eval_prog prog =
   let fcns = List.fold_right get_function prog [] in
   try
     let main = List.find (fun (_, id, _, _) -> id = "main") fcns in
-    eval_func main fcns [Hashtbl.create hash_size]
+    let main_scope = global_scope main fcns in
+    eval_func main main_scope [Hashtbl.create hash_size]
   with Not_found -> failwith "main function not found."
 
 let _ =
