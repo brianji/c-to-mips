@@ -62,7 +62,8 @@ and eval_function_call (id, args) prog local =
         | Void -> VoidRes
         | _ -> failwith @@ "Non-void function did not return value.")
     | NoRes -> VoidRes
-    | _ -> failwith "Break or continue not inside loop or switch."
+    | BrkRes -> failwith "Break not inside loop or switch."
+    | ContRes -> failwith "Continue not inside loop or switch."
   with
   | Not_found -> failwith @@ id ^ " function not found."
   | Invalid_argument _ -> failwith @@ id ^ " invalid number of arguments."
@@ -231,4 +232,5 @@ let _ =
   | RetRes (IntRes i) -> print_string @@ string_of_int i ^ "\n"
   | RetRes (VoidRes) -> failwith "Main did not return integer."
   | NoRes -> print_string "No result.\n"
-  | _ -> failwith "Break or continue not inside loop or switch."
+  | BrkRes -> failwith "Break not inside loop or switch."
+  | ContRes -> failwith "Continue not inside loop or switch."
