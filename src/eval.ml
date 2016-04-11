@@ -40,9 +40,9 @@ and eval_var var prog local = match local with
       | Some s -> s
     else eval_var var prog t
 and eval_value v = match v with (* TODO: support other types *)
-  | Integer i -> IntRes i
-  | Decimal d -> IntRes (int_of_float d)
-  | Letter l -> IntRes (int_of_char l)
+  | IntVal i -> IntRes i
+  | FloatVal d -> IntRes (int_of_float d)
+  | CharVal l -> IntRes (int_of_char l)
 and eval_function_call (id, args) prog local =
   try
     let fcn = List.find (fun (_, f, _, _) -> f = id) prog in

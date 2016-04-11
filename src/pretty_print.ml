@@ -57,9 +57,9 @@ let endop_string = function
   | Neg -> "-"
 
 let value_string = function
-  | Integer i -> string_of_int i
-  | Decimal d -> string_of_float d
-  | Letter l -> String.make 1 l
+  | IntVal i -> string_of_int i
+  | FloatVal d -> string_of_float d
+  | CharVal l -> String.make 1 l
 
 let param_string (prim, id) = prim_string prim ^ " " ^ id
 

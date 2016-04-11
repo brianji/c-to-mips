@@ -150,9 +150,9 @@ prim:
   | FLOAT { Float }
   ;
 value:
-  | INT_VAL { Integer $1 }
-  | FLOAT_VAL { Decimal $1 }
-  | CHAR_VAL { Letter $1 }
+  | INT_VAL { IntVal $1 }
+  | FLOAT_VAL { FloatVal $1 }
+  | CHAR_VAL { CharVal $1 }
   ;
 params:
   | { [] }

@@ -11,9 +11,9 @@ and prim =
   | Float
   | Char
 and value =
-  | Integer of int
-  | Decimal of float
-  | Letter of char
+  | IntVal of int
+  | FloatVal of float
+  | CharVal of char
 and param = prim * id
 and statement =
   | Expr of expr
