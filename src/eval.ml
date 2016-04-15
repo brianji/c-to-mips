@@ -1,12 +1,9 @@
 open Ast
 
 (* Types for results of evaluating expressions and statments. *)
-type expr_result =
+type result =
   | VoidRes
   | IntRes of int
-and statement_result =
-  | NoRes
-  | RetRes of expr_result
   | BrkRes
   | ContRes
 
@@ -25,29 +22,33 @@ let rec prog_scope fcn prog = match prog with
 (* Functions for evaluating expressions. *)
 let rec eval_expr expr prog local = match expr with
   | Empty -> failwith "Empty expression." (* TODO: for loop empty expression *)
-  | Var v -> IntRes (eval_var v prog local)
+  | Var v -> eval_var v prog local
   | Value v -> eval_value v
   | Paren e -> eval_expr e prog local
   | FunctionCall f -> eval_function_call f prog local
-  | Infix i -> IntRes (eval_infix i prog local)
-  | Assign a -> IntRes (eval_assign a prog local)
-  | Prefix p -> IntRes (eval_prefix p prog local)
-  | Postfix p -> IntRes (eval_postfix p prog local)
+  | Infix i -> eval_infix i prog local
+  | Assign a -> eval_assign a prog local
+  | Prefix p -> eval_prefix p prog local
+  | Postfix p -> eval_postfix p prog local
 and eval_int_expr expr prog local = match eval_expr expr prog local with
   | IntRes i -> i
-  | VoidRes -> failwith @@ "Expression requires integer operand(s)."
+  | _ -> failwith "Expected integer value."
 and eval_var var prog local = match local with
   | [] -> failwith @@ var ^ " not declared."
   | h :: t ->
     if Hashtbl.mem h var then
       match Hashtbl.find h var with
       | None -> failwith @@ var ^ " not initialized."
-      | Some s -> s
+      | Some s -> IntRes s
     else eval_var var prog t
-and eval_value v = match v with (* TODO: support other types *)
-  | IntVal i -> IntRes i
-  | FloatVal d -> IntRes (int_of_float d)
-  | CharVal l -> IntRes (int_of_char l)
+and eval_value v =
+  (* TODO: support other types *)
+  let num = match v with
+    | IntVal i -> i
+    | FloatVal f -> int_of_float f
+    | CharVal l -> int_of_char l
+  in
+  IntRes num
 and eval_function_call (id, args) prog local =
   try
     let (r, _, p, b) as fcn = List.find (fun (_, f, _, _) -> f = id) prog in
@@ -58,14 +59,14 @@ and eval_function_call (id, args) prog local =
       Hashtbl.add table var (Some value)
     in
     let () = List.iter2 process_arg args p in
-    match eval_statement b fcn_prog [table] with
-    | RetRes (IntRes i) -> (match r with
-        | Void -> failwith @@ "Void function returned value."
-        | _ -> IntRes i)
-    | RetRes (VoidRes) -> (match r with
-        | Void -> VoidRes
-        | _ -> failwith @@ "Non-void function did not return value.")
-    | NoRes -> VoidRes
+    let res = eval_statement b fcn_prog [table] in
+    match res with
+    | IntRes i -> (match r with
+        | Void -> failwith "Void function returned value."
+        | _ -> res)
+    | VoidRes -> (match r with
+        | Void -> res
+        | _ -> failwith "Non-void function did not return value.")
     | BrkRes -> failwith "Break not inside loop or switch."
     | ContRes -> failwith "Continue not inside loop or switch."
   with
@@ -73,33 +74,33 @@ and eval_function_call (id, args) prog local =
   | Invalid_argument _ -> failwith @@ id ^ " invalid number of arguments."
 and eval_infix (e1, op, e2) prog local =
   let eval e = eval_int_expr e prog local in
-  match op with
-  | Plus -> (eval e1) + (eval e2)
-  | Minus -> (eval e1) - (eval e2)
-  | Times -> (eval e1) * (eval e2)
-  | Divide -> (eval e1) / (eval e2)
-  | Mod -> (eval e1) mod (eval e2)
-  | ShiftLeft -> (eval e1) lsl (eval e2)
-  | ShiftRight -> (eval e1) lsr (eval e2)
-  | Less -> (eval e1) < (eval e2) |> int_of_bool
-  | LesserEq -> (eval e1) <= (eval e2) |> int_of_bool
-  | Greater -> (eval e1) > (eval e2) |> int_of_bool
-  | GreaterEq -> (eval e1) >= (eval e2) |> int_of_bool
-  | Equals -> (eval e1) == (eval e2) |> int_of_bool
-  | NotEquals -> (eval e1) != (eval e2) |> int_of_bool
-  | BitAnd -> (eval e1) land (eval e2)
-  | BitXor -> (eval e1) lxor (eval e2)
-  | BitOr -> (eval e1) lor (eval e2)
-  | And ->
-    (bool_of_int (eval e1) && bool_of_int (eval e2)) |> int_of_bool
-  | Or ->
-    (bool_of_int (eval e1) || bool_of_int (eval e2)) |> int_of_bool
-  | Comma -> let _ = eval_expr e1 prog local in eval e2
+  let num = match op with
+    | Plus -> (eval e1) + (eval e2)
+    | Minus -> (eval e1) - (eval e2)
+    | Times -> (eval e1) * (eval e2)
+    | Divide -> (eval e1) / (eval e2)
+    | Mod -> (eval e1) mod (eval e2)
+    | ShiftLeft -> (eval e1) lsl (eval e2)
+    | ShiftRight -> (eval e1) lsr (eval e2)
+    | Less -> (eval e1) < (eval e2) |> int_of_bool
+    | LesserEq -> (eval e1) <= (eval e2) |> int_of_bool
+    | Greater -> (eval e1) > (eval e2) |> int_of_bool
+    | GreaterEq -> (eval e1) >= (eval e2) |> int_of_bool
+    | Equals -> (eval e1) == (eval e2) |> int_of_bool
+    | NotEquals -> (eval e1) != (eval e2) |> int_of_bool
+    | BitAnd -> (eval e1) land (eval e2)
+    | BitXor -> (eval e1) lxor (eval e2)
+    | BitOr -> (eval e1) lor (eval e2)
+    | And -> (bool_of_int (eval e1) && bool_of_int (eval e2)) |> int_of_bool
+    | Or -> (bool_of_int (eval e1) || bool_of_int (eval e2)) |> int_of_bool
+    | Comma -> let _ = eval_expr e1 prog local in eval e2
+  in 
+  IntRes num
 and eval_assign (id, op, e) prog local =
   try
     let rhs = eval_int_expr e prog local in
-    let eval id = eval_var id prog local in
-    let res = match op with
+    let eval id = eval_int_expr (Var id) prog local in
+    let num = match op with
       | Asgmt -> rhs
       | PlusA -> rhs + (eval id)
       | MinusA -> rhs - (eval id)
@@ -113,48 +114,52 @@ and eval_assign (id, op, e) prog local =
       | BitXorA -> rhs lxor (eval id)
     in
     let table = List.find (fun a -> Hashtbl.mem a id) local in
-    let () = Hashtbl.replace table id (Some res) in
-    res
+    let () = Hashtbl.replace table id (Some num) in
+    IntRes num
   with Not_found -> failwith @@ id ^ " not declared."
 and eval_prefix (op, e) prog local =
   let v = eval_int_expr e prog local in
-  match op with
-  | Incrmt -> let () = eval_incr e prog local in v + 1
-  | Decrmt -> let () = eval_decr e prog local in v - 1
-  | Not -> not @@ bool_of_int v |> int_of_bool
-  | Comp -> lnot v
-  | Pos -> v
-  | Neg -> -v
+  let num = match op with
+    | Incrmt -> let () = eval_incr e prog local in v + 1
+    | Decrmt -> let () = eval_decr e prog local in v - 1
+    | Not -> not @@ bool_of_int v |> int_of_bool
+    | Comp -> lnot v
+    | Pos -> v
+    | Neg -> -v
+  in
+  IntRes num
 and eval_postfix (e, op) prog local =
   let v = eval_int_expr e prog local in
-  match op with
-  | Incrmt -> let () = eval_incr e prog local in v
-  | Decrmt -> let () = eval_decr e prog local in v
-  | _ -> failwith "Invalid postfix operator."
+  let num = match op with
+    | Incrmt -> let () = eval_incr e prog local in v
+    | Decrmt -> let () = eval_decr e prog local in v
+    | _ -> failwith "Invalid postfix operator."
+  in
+  IntRes num
 and eval_incr e prog local = match e with
-  | Var v ->
-    let curr = eval_var v prog local + 1 in
+  | Var v as var ->
+    let curr = eval_int_expr var prog local + 1 in
     let table = List.find (fun a -> Hashtbl.mem a v) local in
     Hashtbl.replace table v (Some curr)
   | _ -> failwith "Increment requires variable."
 and eval_decr e prog local = match e with
-  | Var v ->
-    let curr = eval_var v prog local - 1 in
+  | Var v as var ->
+    let curr = eval_int_expr var prog local - 1 in
     let table = List.find (fun a -> Hashtbl.mem a v) local in
     Hashtbl.replace table v (Some curr)
   | _ -> failwith "Decrement requires variable."
 
 (* Evaluates statements. *)
 and eval_statements statements prog local = match statements with
-  | [] -> NoRes
+  | [] -> VoidRes
   | h :: t -> match eval_statement h prog local with
-    | NoRes -> eval_statements t prog local
+    | VoidRes -> eval_statements t prog local
     | other -> other
 and eval_statement statement prog local = match statement with
   | Dec (p, decs) -> eval_dec decs prog local
-  | Expr e -> let _ = eval_expr e prog local in NoRes
-  | Return -> RetRes (VoidRes)
-  | ReturnExpr e -> RetRes (eval_expr e prog local)
+  | Expr e -> let _ = eval_expr e prog local in VoidRes
+  | Return -> VoidRes
+  | ReturnExpr e -> eval_expr e prog local
   | Break -> BrkRes
   | Continue -> ContRes
   | Block b -> eval_statements b prog local
@@ -166,7 +171,7 @@ and eval_statement statement prog local = match statement with
   | If i -> eval_if i prog local
   | IfElse i -> eval_if_else i prog local
 and eval_dec decs prog local = match decs with
-  | [] -> NoRes
+  | [] -> VoidRes
   | h :: t ->
     let table = match local with
       | [] -> failwith "Scope empty."
@@ -185,50 +190,46 @@ and eval_dec decs prog local = match decs with
 and eval_while (cond, statement) prog local =
   if eval_int_expr cond prog local != 0 then
     match eval_statement statement prog local with
-    | NoRes -> eval_while (cond, statement) prog local
+    | VoidRes -> eval_while (cond, statement) prog local
     | ContRes -> eval_while (cond, statement) prog local
-    | BrkRes -> NoRes
+    | BrkRes -> VoidRes
     | other -> other
   else
-    NoRes
+    VoidRes
 and eval_for cond inc statement prog local =
   if eval_int_expr cond prog local != 0 then
     match eval_statement statement prog local  with
-    | NoRes ->
+    | VoidRes ->
       let _ = eval_expr inc prog local in
       eval_for cond inc statement prog local
     | ContRes ->
       let _ = eval_expr inc prog local in
       eval_for cond inc statement prog local
-    | BrkRes -> NoRes
+    | BrkRes -> VoidRes
     | other -> other
   else
-    NoRes
+    VoidRes
 and eval_if (cond, statement) prog local =
   let new_local = Hashtbl.create hash_size :: local in
   if eval_int_expr cond prog local != 0 then
     eval_statement statement prog new_local
   else
-    NoRes
+    VoidRes
 and eval_if_else (cond, s1, s2) prog local =
   let new_local = Hashtbl.create hash_size :: local in
   let block = if eval_int_expr cond prog local != 0 then s1 else s2 in
   eval_statement block prog new_local
 
-let rec eval_prog prog =
-  (* TODO: process prog variables *)
+let rec eval_main prog =
+  (* TODO: process global variables *)
   let get_fcns h a = match h with
     | Func f -> f :: a
     | Global _ -> a
   in
   let fcns = List.fold_right get_fcns prog [] in
-  RetRes (eval_function_call ("main", []) fcns [])
+  match eval_function_call ("main", []) fcns [] with
+  | IntRes i -> i
+  | _ -> 0
 
 (* Evaluates abstract syntax tree generated by lexing and parsing input. *) 
-let _ =
-  match Lexing.from_channel stdin |> Parser.prog Lexer.read |> eval_prog with
-  | RetRes (IntRes i) -> print_string @@ string_of_int i ^ "\n"
-  | RetRes (VoidRes) -> failwith "Main did not return integer."
-  | NoRes -> print_string "No result.\n"
-  | BrkRes -> failwith "Break not inside loop or switch."
-  | ContRes -> failwith "Continue not inside loop or switch."
+let _ = Lexing.from_channel stdin |> Parser.prog Lexer.read |> eval_main |> exit
