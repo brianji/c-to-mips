@@ -8,6 +8,7 @@ type result =
   | ContRes
 
 let hash_size = 20 (* for hash tables in scope list *)
+let new_scope scope = Hashtbl.create hash_size :: scope
 
 (* Convert between booleans in C and OCaml. *)
 let bool_of_int i = if i = 0 then false else true
@@ -130,23 +131,23 @@ and eval_prefix (op, e) prog local =
   IntRes num
 and eval_postfix (e, op) prog local =
   let v = eval_int_expr e prog local in
-  let num = match op with
-    | Incrmt -> let () = eval_incr e prog local in v
-    | Decrmt -> let () = eval_decr e prog local in v
+  let () = match op with
+    | Incrmt -> eval_incr e prog local
+    | Decrmt -> eval_decr e prog local
     | _ -> failwith "Invalid postfix operator."
   in
-  IntRes num
+  IntRes v
 and eval_incr e prog local = match e with
   | Var v as var ->
-    let curr = eval_int_expr var prog local + 1 in
+    let next = eval_int_expr var prog local + 1 in
     let table = List.find (fun a -> Hashtbl.mem a v) local in
-    Hashtbl.replace table v (Some curr)
+    Hashtbl.replace table v (Some next)
   | _ -> failwith "Increment requires variable."
 and eval_decr e prog local = match e with
   | Var v as var ->
-    let curr = eval_int_expr var prog local - 1 in
+    let next = eval_int_expr var prog local - 1 in
     let table = List.find (fun a -> Hashtbl.mem a v) local in
-    Hashtbl.replace table v (Some curr)
+    Hashtbl.replace table v (Some next)
   | _ -> failwith "Decrement requires variable."
 
 (* Evaluates statements. *)
@@ -162,14 +163,13 @@ and eval_statement statement prog local = match statement with
   | ReturnExpr e -> eval_expr e prog local
   | Break -> BrkRes
   | Continue -> ContRes
-  | Block b -> eval_statements b prog local
-  | While w -> eval_while w prog (Hashtbl.create hash_size :: local)
+  | Block b -> eval_statements b prog (new_scope local)
+  | While w -> eval_while w prog (new_scope local)
   | For ((e1, e2, e3), s) ->
-    let new_local = Hashtbl.create hash_size :: local in
-    let _ = eval_expr e1 prog new_local in
-    eval_for e2 e3 s prog new_local
-  | If i -> eval_if i prog local
-  | IfElse i -> eval_if_else i prog local
+    let _ = eval_expr e1 prog local in
+    eval_for e2 e3 s prog (new_scope local)
+  | If i -> eval_if i prog (new_scope local)
+  | IfElse i -> eval_if_else i prog (new_scope local)
 and eval_dec decs prog local = match decs with
   | [] -> VoidRes
   | h :: t ->
@@ -177,16 +177,17 @@ and eval_dec decs prog local = match decs with
       | [] -> failwith "Scope empty."
       | h :: _ -> h
     in
-    match h with
-    | Var v ->
-      if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
-      else let () = Hashtbl.add table v None in eval_dec t prog local
-    | Assign (v, Asgmt, decs) ->
-      if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
-      else
-        let () = Hashtbl.add table v (Some (eval_int_expr decs prog local)) in
-        eval_dec t prog local
-    | _ -> failwith "Invalid declaration expression."
+    let var, value = match h with
+      | Var v ->
+        if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
+        else v, None
+      | Assign (v, Asgmt, decs) ->
+        if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
+        else v, Some (eval_int_expr decs prog local)
+      | _ -> failwith "Invalid declaration expression."
+    in
+    let () = Hashtbl.add table var value in
+    eval_dec t prog local
 and eval_while (cond, statement) prog local =
   if eval_int_expr cond prog local != 0 then
     match eval_statement statement prog local with
@@ -210,15 +211,13 @@ and eval_for cond inc statement prog local =
   else
     VoidRes
 and eval_if (cond, statement) prog local =
-  let new_local = Hashtbl.create hash_size :: local in
   if eval_int_expr cond prog local != 0 then
-    eval_statement statement prog new_local
+    eval_statement statement prog local
   else
     VoidRes
 and eval_if_else (cond, s1, s2) prog local =
-  let new_local = Hashtbl.create hash_size :: local in
   let block = if eval_int_expr cond prog local != 0 then s1 else s2 in
-  eval_statement block prog new_local
+  eval_statement block prog local
 
 let rec eval_main prog =
   (* TODO: process global variables *)
