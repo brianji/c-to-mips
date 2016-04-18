@@ -4,3 +4,4 @@ eval
 pretty_print
 build/*
 !build/.keep
+!.travis.yml
