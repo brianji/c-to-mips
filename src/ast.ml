@@ -32,9 +32,6 @@ and while_loop = expr * statement
 and for_loop = (expr * expr * expr) * statement
 and if_statement = expr * statement
 and if_else_statement = expr * statement * statement
-and dec_expr =
-  | DecVar of id
-  | InitVar of id * expr
 and expr =
   | Empty
   | Var of id
