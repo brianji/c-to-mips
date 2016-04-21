@@ -8,6 +8,12 @@ all: $(PROGS)
 clean:
 	@echo "Cleaning $(BUILDDIR) and executables"
 	-@rm $(BUILDDIR)/* pretty_print 2>/dev/null || true
+	cd test && make clean
+
+test: dummy
+	cd test && make test && ./test
+
+dummy:
 
 eval: eval.cmo
 	$(CC) -o eval operators.cmo directives.cmo keywords.cmo lexer.cmo parser.cmo eval.cmo ast.cmo
