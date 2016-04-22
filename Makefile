@@ -11,7 +11,7 @@ clean:
 	cd test && make clean
 
 test: dummy
-	cd test && make test && ./test
+	cd test && make && ./test_parser
 
 dummy:
 
