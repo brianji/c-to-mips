@@ -11,7 +11,7 @@ let frac = '.' digit*
 let exp = ['e' 'E'] ['-' '+']? digit+
 
 (* primitive values *)
-let int = '-'? digit digit*
+let int = digit digit*
 let float = digit* frac? exp?
 let char = ''' _ '''
 
