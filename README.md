@@ -2,7 +2,7 @@
 
 Utilities for formatting and evaluating parsed C code. Written in OCaml.
 
-[![Build Status](https://travis-ci.org/brianji/c-to-mips.svg?branch=master)](https://travis-ci.org/brianji/c-to-mips)
+[![Build Status](https://travis-ci.org/brianji/pcwo.svg?branch=master)](https://travis-ci.org/brianji/pcwo)
 
 ## Requirements
 - OCaml
