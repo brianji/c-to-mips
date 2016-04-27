@@ -13,9 +13,7 @@ Utilities for formatting and evaluating parsed C code. Written in OCaml.
 
 ## Getting Started
 ### Directories
-#### build
-Files from compiling with Makefile.
-#### src
+#### root
 Source files for project:
 - ast.ml - Abstract syntax tree type
 - directives.ml - Directive matching for lexer
@@ -25,9 +23,22 @@ Source files for project:
 - operators.ml - Operator matching for lexer
 - parser.mly - C parser with OCamlyacc
 - pretty_print.ml - Format C code
+#### test
+Unit tests for project using OUnit:
+- input - directory of input files for testing
+  - arith.c - operators
+  - basic.c - function and globals
+  - call.c - function call
+  - dec.c - declaration
+  - ifelse - if-else statements
+- trees.ml - ASTs used in testing
+- test_parser.ml - Unit tests for lexing and parsing
 
 ### Compile
-Running make in the root directory will compile the utilities and generate executables, pretty_print and eval, in the root directory. Other compiled files will go into the build directory.
+Running `make` in the root directory will compile the utilities and generate executables, pretty_print and eval, in the root directory. Other generated files will be ignored by git.
+
+### Testing
+Running `make test` in the root directory will compile the utilities, tests, and then run the tests.
 
 ### Execute
 The utilities take input from stdin until EOF.
