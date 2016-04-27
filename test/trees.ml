@@ -103,3 +103,34 @@ let call = [
     ]
   )
 ]
+
+let ifelse = [
+  Func (
+    Int,
+    "main",
+    [],
+    Block [
+      If (
+        Value (IntVal 1),
+        Block []
+      );
+      IfElse (
+        Value (IntVal 2),
+        Block [],
+        IfElse (
+          Value (IntVal 3),
+          Block [],
+          Block []
+        )
+      );
+      If (
+        Value (IntVal 4),
+        IfElse (
+          Value (IntVal 5),
+          Block [],
+          Block []
+        )
+      )
+    ]
+  )
+]

@@ -12,6 +12,7 @@ let test_basic () = compare "input/basic.c" Trees.basic
 let test_arith () = compare "input/arith.c" Trees.arith
 let test_dec () = compare "input/dec.c" Trees.dec
 let test_call () = compare "input/call.c" Trees.call
+let test_ifelse () = compare "input/ifelse.c" Trees.ifelse
 
 (* List of tests to run *)
 let suite_eval =
@@ -19,7 +20,8 @@ let suite_eval =
   ["basic" >:: test_basic;
    "arith" >:: test_arith;
    "dec" >:: test_dec;
-   "call" >:: test_call]
+   "call" >:: test_call;
+   "ifelse" >:: test_ifelse]
 
 (* Output test results *)
 let _ = Printf.printf "Parse:\n"

@@ -1,7 +1,11 @@
 .*
-src/.*
+!.travis.yml
 eval
 pretty_print
-build/*
-!build/.keep
-!.travis.yml
+*.cmo
+*.cmi
+lexer.ml
+parser.ml
+parser.mli
+oUnit-anon.cache
+test_parser
