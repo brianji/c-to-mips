@@ -15,14 +15,14 @@ eval: eval.cmo
 	$(CC) -o eval operators.cmo directives.cmo keywords.cmo \
 	  lexer.cmo parser.cmo eval.cmo ast.cmo
 
-eval.cmo: ast.cmo lexer.cmo parser.cmo
+eval.cmo: eval.ml ast.cmo lexer.cmo parser.cmo
 	$(CC) -o eval -c eval.ml
 
 pretty_print: pretty_print.cmo
 	$(CC) -o pretty_print operators.cmo directives.cmo keywords.cmo \
 	  lexer.cmo parser.cmo pretty_print.cmo ast.cmo
 
-pretty_print.cmo: ast.cmo lexer.cmo parser.cmo
+pretty_print.cmo: pretty_print.ml ast.cmo lexer.cmo parser.cmo
 	$(CC) -o pretty_print -c pretty_print.ml
 
 ast.cmo: ast.ml
@@ -34,13 +34,13 @@ lexer.cmo: lexer.ml parser.cmo operators.cmo directives.cmo keywords.cmo
 lexer.ml: lexer.mll
 	ocamllex -o lexer.ml lexer.mll
 
-operators.cmo: parser.cmo
+operators.cmo: operators.ml parser.cmo
 	$(CC) -o operators -c operators.ml
 
-directives.cmo: parser.cmo
+directives.cmo: directives.ml parser.cmo
 	$(CC) -o directives -c directives.ml
 
-keywords.cmo: parser.cmo
+keywords.cmo: keywords.ml parser.cmo
 	$(CC) -o keywords -c keywords.ml
 
 parser.cmo: parser.ml ast.cmo parser.cmi
