@@ -13,25 +13,113 @@
     <section class="page-header">
       <h1 class="project-name">C to MIPS</h1>
       <h2 class="project-tagline">Translate C to MIPS with OCaml</h2>
-      <a href="https://github.com/brianji/c-to-mips" class="btn">View on GitHub</a>
-      <a href="https://github.com/brianji/c-to-mips/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/brianji/c-to-mips/tarball/master" class="btn">Download .tar.gz</a>
+      <a href="https://github.com/brianji/pcwo" class="btn">View on GitHub</a>
+      <a href="https://github.com/brianji/pcwo/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/brianji/pcwo/tarball/master" class="btn">Download .tar.gz</a>
     </section>
 
     <section class="main-content">
-      <h3>
-<a id="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome</h3>
+      <h1>
+<a id="process-c-with-ocaml" class="anchor" href="#process-c-with-ocaml" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Process C with OCaml</h1>
 
-<p>Empty</p>
+<p>Utilities for formatting and evaluating parsed C code. Written in OCaml.</p>
+
+<p><a href="https://travis-ci.org/brianji/pcwo"><img src="https://travis-ci.org/brianji/pcwo.svg?branch=master" alt="Build Status"></a></p>
+
+<h2>
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements</h2>
+
+<ul>
+<li>OCaml</li>
+<li>OCamllex</li>
+<li>OCamlyacc</li>
+<li>OUnit</li>
+<li>GNU Make</li>
+</ul>
+
+<h2>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started</h2>
+
+<h3>
+<a id="directories" class="anchor" href="#directories" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Directories</h3>
+
+<h4>
+<a id="root" class="anchor" href="#root" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>root</h4>
+
+<p>Source files for project:</p>
+
+<ul>
+<li>ast.ml - Abstract syntax tree type</li>
+<li>directives.ml - Directive matching for lexer</li>
+<li>eval.ml - Evaluate C code</li>
+<li>keywords.ml - Keyword matching for lexer</li>
+<li>lexer.mll - C lexer with OCamllex</li>
+<li>operators.ml - Operator matching for lexer</li>
+<li>parser.mly - C parser with OCamlyacc</li>
+<li>pretty_print.ml - Format C code</li>
+</ul>
+
+<h4>
+<a id="test" class="anchor" href="#test" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>test</h4>
+
+<p>Unit tests for project using OUnit:</p>
+
+<ul>
+<li>input - directory of input files for testing
+
+<ul>
+<li>arith.c - operators</li>
+<li>basic.c - function and globals</li>
+<li>call.c - function call</li>
+<li>dec.c - declaration</li>
+<li>ifelse - if-else statements</li>
+</ul>
+</li>
+<li>trees.ml - ASTs used in testing</li>
+<li>test_parser.ml - Unit tests for lexing and parsing</li>
+</ul>
+
+<h3>
+<a id="compile" class="anchor" href="#compile" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Compile</h3>
+
+<p>Running <code>make</code> in the root directory will compile the utilities and generate executables, pretty_print and eval, in the root directory. Other generated files will be ignored by git.</p>
+
+<h3>
+<a id="testing" class="anchor" href="#testing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Testing</h3>
+
+<p>Running <code>make test</code> in the root directory will compile the utilities, tests, and then run the tests.</p>
+
+<h3>
+<a id="execute" class="anchor" href="#execute" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Execute</h3>
+
+<p>The utilities take input from stdin until EOF.</p>
+
+<h2>
+<a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Features</h2>
+
+<h3>
+<a id="lexer--parser" class="anchor" href="#lexer--parser" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Lexer / Parser</h3>
+
+<p>Generate Abstract Syntax tree by lexing and parsing C code.</p>
+
+<h3>
+<a id="pretty-print" class="anchor" href="#pretty-print" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pretty Print</h3>
+
+<p>Formats C code by parsing input and regenerating the code.</p>
+
+<h3>
+<a id="evaluate" class="anchor" href="#evaluate" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Evaluate</h3>
+
+<p>Evaluates C code by parsing input and returning to the console the value that main() returns.</p>
 
       <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/brianji/c-to-mips">C to MIPS</a> is maintained by <a href="https://github.com/brianji">brianji</a>.</span>
+        <span class="site-footer-owner"><a href="https://github.com/brianji/pcwo">C to MIPS</a> is maintained by <a href="https://github.com/brianji">brianji</a>.</span>
 
         <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
       </footer>
 
     </section>
 
-
+  
   </body>
 </html>
