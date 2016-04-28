@@ -1,6 +1,6 @@
 # Process C with OCaml
 
-Utilities for formatting and evaluating parsed C code. Written in OCaml.
+Utilities for parsing, formatting, and evaluating C code. Written in OCaml.
 
 [![Build Status](https://travis-ci.org/brianji/pcwo.svg?branch=master)](https://travis-ci.org/brianji/pcwo)
 
@@ -31,7 +31,7 @@ Unit tests for project using OUnit:
   - basic.c - function and globals
   - call.c - function call
   - dec.c - declaration
-  - ifelse - if-else statements
+  - ifelse.c - if-else statements
 - trees.ml - ASTs used in testing
 - test_parser.ml - Unit tests for lexing and parsing
 
@@ -42,7 +42,7 @@ Running `make` in the root directory will compile the utilities and generate exe
 Running `make test` in the root directory will compile the utilities, tests, and then run the tests.
 
 ### Execute
-The utilities take input from stdin until EOF.
+The utilities take input from stdin until EOF. The executables are found in the root directory.
 
 ## Features
 ### Lexer / Parser
