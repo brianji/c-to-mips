@@ -52,7 +52,15 @@ and eval_value v =
   Some num
 and eval_function_call (id, args) prog local =
   try
-    let (r, _, p, b) as fcn = List.find (fun (_, f, _, _) -> f = id) prog in
+    let find_function f = match f with
+      | Func (_, f, _, _) -> f = id
+      | _ -> false
+    in
+    let fcn = List.find find_function prog in
+    let (r, _, p, b) = match fcn with
+      | Func f -> f
+      | _ -> failwith "Found global instead of function."
+    in
     let fcn_prog = prog_scope fcn prog in
     let table = Hashtbl.create hash_size in
     let process_arg arg (_, var) =
@@ -220,13 +228,7 @@ and eval_if_else (cond, s1, s2) prog local =
   eval_statement block prog local
 
 let rec eval_main prog =
-  (* TODO: process global variables *)
-  let get_fcns h a = match h with
-    | Func f -> f :: a
-    | Global _ -> a
-  in
-  let fcns = List.fold_right get_fcns prog [] in
-  match eval_function_call ("main", []) fcns [] with
+  match eval_function_call ("main", []) prog [] with
   | Some i -> i
   | _ -> 0
 
