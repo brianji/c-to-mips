@@ -142,32 +142,52 @@ and eval_infix (e1, op, e2) prog vars =
     | Less -> (
         match eval e1, eval e2 with
         | IntRes i1, IntRes i2 -> IntRes (i1 < i2 |> int_of_bool)
-        | _ -> failwith "< requires integer values."
+        | FloatRes f1, IntRes i2 -> IntRes (f1 < float_of_int i2 |> int_of_bool)
+        | IntRes i1, FloatRes f2 -> IntRes (float_of_int i1 < f2 |> int_of_bool)
+        | FloatRes f1, FloatRes f2 -> IntRes (f1 < f2 |> int_of_bool)
       )
     | LesserEq -> (
         match eval e1, eval e2 with
         | IntRes i1, IntRes i2 -> IntRes (i1 <= i2 |> int_of_bool)
-        | _ -> failwith "<= requires integer values."
+        | FloatRes f1, IntRes i2 ->
+          IntRes (f1 <= float_of_int i2 |> int_of_bool)
+        | IntRes i1, FloatRes f2 ->
+          IntRes (float_of_int i1 <= f2 |> int_of_bool)
+        | FloatRes f1, FloatRes f2 -> IntRes (f1 <= f2 |> int_of_bool)
       )
     | Greater -> (
         match eval e1, eval e2 with
         | IntRes i1, IntRes i2 -> IntRes (i1 > i2 |> int_of_bool)
-        | _ -> failwith "> requires integer values."
+        | FloatRes f1, IntRes i2 -> IntRes (f1 > float_of_int i2 |> int_of_bool)
+        | IntRes i1, FloatRes f2 -> IntRes (float_of_int i1 > f2 |> int_of_bool)
+        | FloatRes f1, FloatRes f2 -> IntRes (f1 > f2 |> int_of_bool)
       )
     | GreaterEq -> (
         match eval e1, eval e2 with
         | IntRes i1, IntRes i2 -> IntRes (i1 >= i2 |> int_of_bool)
-        | _ -> failwith ">= requires integer values."
+        | FloatRes f1, IntRes i2 ->
+          IntRes (f1 >= float_of_int i2 |> int_of_bool)
+        | IntRes i1, FloatRes f2 ->
+          IntRes (float_of_int i1 >= f2 |> int_of_bool)
+        | FloatRes f1, FloatRes f2 -> IntRes (f1 >= f2 |> int_of_bool)
       )
     | Equals -> (
         match eval e1, eval e2 with
         | IntRes i1, IntRes i2 -> IntRes (i1 == i2 |> int_of_bool)
-        | _ -> failwith "== requires integer values."
+        | FloatRes f1, IntRes i2 ->
+          IntRes (f1 == float_of_int i2 |> int_of_bool)
+        | IntRes i1, FloatRes f2 ->
+          IntRes (float_of_int i1 == f2 |> int_of_bool)
+        | FloatRes f1, FloatRes f2 -> IntRes (f1 == f2 |> int_of_bool)
       )
     | NotEquals -> (
         match eval e1, eval e2 with
         | IntRes i1, IntRes i2 -> IntRes (i1 != i2 |> int_of_bool)
-        | _ -> failwith "!= requires integer values."
+        | FloatRes f1, IntRes i2 ->
+          IntRes (f1 != float_of_int i2 |> int_of_bool)
+        | IntRes i1, FloatRes f2 ->
+          IntRes (float_of_int i1 != f2 |> int_of_bool)
+        | FloatRes f1, FloatRes f2 -> IntRes (f1 != f2 |> int_of_bool)
       )
     | BitAnd -> (
         match eval e1, eval e2 with
