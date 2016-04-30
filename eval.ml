@@ -1,9 +1,12 @@
 open Ast
 
 (* Types for results of evaluating expressions and statments. *)
-type result =
+type expr_result =
+  | IntRes of int
+  | FloatRes of float
+and statement_result =
   | VoidRes
-  | RetRes of int option
+  | RetRes of expr_result option
   | BrkRes
   | ContRes
 
@@ -31,25 +34,24 @@ let rec eval_expr expr prog vars = match expr with
   | Assign a -> eval_assign a prog vars
   | Prefix p -> eval_prefix p prog vars
   | Postfix p -> eval_postfix p prog vars
-and eval_int_expr expr prog vars = match eval_expr expr prog vars with
+and eval_type_expr expr prog vars = match eval_expr expr prog vars with
   | Some i -> i
   | None -> failwith "Expected integer value."
 and eval_var var prog vars = match vars with
   | [] -> failwith @@ var ^ " not declared."
   | h :: t ->
     if Hashtbl.mem h var then
-      match Hashtbl.find h var with
-      | None -> failwith @@ var ^ " not initialized."
-      | value -> value
-    else eval_var var prog t
+      Some (Hashtbl.find h var)
+    else
+      eval_var var prog t
 and eval_value v =
   (* TODO: support other types *)
-  let num = match v with
-    | IntVal i -> i
-    | FloatVal f -> int_of_float f
-    | CharVal l -> int_of_char l
-  in
-  Some num
+  let value =
+    match v with
+      | IntVal i -> IntRes i
+      | FloatVal f -> FloatRes f
+      | CharVal l -> IntRes (int_of_char l)
+  in Some value
 and eval_function_call (id, args) prog vars =
   try
     (* Get function to be called *)
@@ -72,8 +74,8 @@ and eval_function_call (id, args) prog vars =
     let fcn_prog = prog_scope fcn prog in
     let arg_vars = Hashtbl.create hash_size in
     let process_arg arg (_, var) =
-      let value = eval_int_expr arg prog vars in
-      Hashtbl.add arg_vars var (Some value)
+      let value = eval_type_expr arg prog vars in
+      Hashtbl.add arg_vars var value
     in
     let () = List.iter2 process_arg args p in
     let fcn_vars = [arg_vars; get_globals vars] in
@@ -92,80 +94,209 @@ and eval_function_call (id, args) prog vars =
   | Not_found -> failwith @@ id ^ " function not found."
   | Invalid_argument _ -> failwith @@ id ^ " invalid number of arguments."
 and eval_infix (e1, op, e2) prog vars =
-  let eval e = eval_int_expr e prog vars in
-  let num = match op with
-    | Plus -> (eval e1) + (eval e2)
-    | Minus -> (eval e1) - (eval e2)
-    | Times -> (eval e1) * (eval e2)
-    | Divide -> (eval e1) / (eval e2)
-    | Mod -> (eval e1) mod (eval e2)
-    | ShiftLeft -> (eval e1) lsl (eval e2)
-    | ShiftRight -> (eval e1) lsr (eval e2)
-    | Less -> (eval e1) < (eval e2) |> int_of_bool
-    | LesserEq -> (eval e1) <= (eval e2) |> int_of_bool
-    | Greater -> (eval e1) > (eval e2) |> int_of_bool
-    | GreaterEq -> (eval e1) >= (eval e2) |> int_of_bool
-    | Equals -> (eval e1) == (eval e2) |> int_of_bool
-    | NotEquals -> (eval e1) != (eval e2) |> int_of_bool
-    | BitAnd -> (eval e1) land (eval e2)
-    | BitXor -> (eval e1) lxor (eval e2)
-    | BitOr -> (eval e1) lor (eval e2)
-    | And -> (bool_of_int (eval e1) && bool_of_int (eval e2)) |> int_of_bool
-    | Or -> (bool_of_int (eval e1) || bool_of_int (eval e2)) |> int_of_bool
+  let eval e = eval_type_expr e prog vars in
+  let value = match op with
+    | Plus -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 + i2)
+        | FloatRes f1, IntRes i2 -> FloatRes (f1 +. float_of_int i2)
+        | IntRes i1, FloatRes f2 -> FloatRes (float_of_int i1 +. f2)
+        | FloatRes f1, FloatRes f2 -> FloatRes (f1 +. f2)
+      )
+    | Minus -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 - i2)
+        | FloatRes f1, IntRes i2 -> FloatRes (f1 -. float_of_int i2)
+        | IntRes i1, FloatRes f2 -> FloatRes (float_of_int i1 -. f2)
+        | FloatRes f1, FloatRes f2 -> FloatRes (f1 -. f2)
+      )
+    | Times -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 * i2)
+        | FloatRes f1, IntRes i2 -> FloatRes (f1 *. float_of_int i2)
+        | IntRes i1, FloatRes f2 -> FloatRes (float_of_int i1 *. f2)
+        | FloatRes f1, FloatRes f2 -> FloatRes (f1 *. f2)
+      )
+    | Divide -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 / i2)
+        | FloatRes f1, IntRes i2 -> FloatRes (f1 /. float_of_int i2)
+        | IntRes i1, FloatRes f2 -> FloatRes (float_of_int i1 /. f2)
+        | FloatRes f1, FloatRes f2 -> FloatRes (f1 /. f2)
+      )
+    | Mod -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 mod i2)
+        | _ -> failwith "% requires integer values."
+      )
+    | ShiftLeft -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 lsl i2)
+        | _ -> failwith "<< requires integer values."
+      )
+    | ShiftRight -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 lsr i2)
+        | _ -> failwith ">> requires integer values."
+      )
+    | Less -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 < i2 |> int_of_bool)
+        | _ -> failwith "< requires integer values."
+      )
+    | LesserEq -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 <= i2 |> int_of_bool)
+        | _ -> failwith "<= requires integer values."
+      )
+    | Greater -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 > i2 |> int_of_bool)
+        | _ -> failwith "> requires integer values."
+      )
+    | GreaterEq -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 >= i2 |> int_of_bool)
+        | _ -> failwith ">= requires integer values."
+      )
+    | Equals -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 == i2 |> int_of_bool)
+        | _ -> failwith "== requires integer values."
+      )
+    | NotEquals -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 != i2 |> int_of_bool)
+        | _ -> failwith "!= requires integer values."
+      )
+    | BitAnd -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 land i2)
+        | _ -> failwith "& requires integer values."
+      )
+    | BitXor -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 lxor i2)
+        | _ -> failwith "^ requires integer values."
+      )
+    | BitOr -> (
+        match eval e1, eval e2 with
+        | IntRes i1, IntRes i2 -> IntRes (i1 lor i2)
+        | _ -> failwith "| requires integer values."
+      )
+    | And -> (
+        match eval e1 with
+        | IntRes i1 -> (
+            match eval e2 with
+            | IntRes i2 ->
+              IntRes ((bool_of_int i1 && bool_of_int i2) |> int_of_bool)
+            | _ -> failwith "&& requires integer values."
+          )
+        | _ -> failwith "&& requires integer values."
+      )
+    | Or -> (
+        match eval e1 with
+        | IntRes i1 -> (
+            match eval e2 with
+            | IntRes i2 ->
+              IntRes ((bool_of_int i1 || bool_of_int i2) |> int_of_bool)
+            | _ -> failwith "|| requires integer values."
+          )
+        | _ -> failwith "|| requires integer values."
+      )
     | Comma -> let _ = eval_expr e1 prog vars in eval e2
   in
-  Some num
+  Some value
 and eval_assign (id, op, e) prog vars =
   try
-    let rhs = eval_int_expr e prog vars in
-    let eval id = eval_int_expr (Var id) prog vars in
-    let num = match op with
-      | Asgmt -> rhs
-      | PlusA -> rhs + (eval id)
-      | MinusA -> rhs - (eval id)
-      | TimesA -> rhs * (eval id)
-      | DivideA -> rhs / (eval id)
-      | ModA -> rhs mod (eval id)
-      | ShiftLeftA -> rhs lsl (eval id)
-      | ShiftRightA -> rhs lsr (eval id)
-      | BitAndA -> rhs land (eval id)
-      | BitOrA -> rhs lor (eval id)
-      | BitXorA -> rhs lxor (eval id)
-    in
+    let eval inop = eval_type_expr (Infix ((Var id), inop, e)) prog vars in
     let table = List.find (fun a -> Hashtbl.mem a id) vars in
-    let () = Hashtbl.replace table id (Some num) in
-    Some num
+    let value = match op with
+      | Asgmt -> eval_type_expr e prog vars
+      | PlusA -> eval Plus
+      | MinusA -> eval Minus
+      | TimesA -> eval Times
+      | DivideA -> eval Divide
+      | ModA -> eval Mod
+      | ShiftLeftA -> eval ShiftLeft
+      | ShiftRightA -> eval ShiftRight
+      | BitAndA -> eval BitAnd
+      | BitOrA -> eval BitOr
+      | BitXorA -> eval BitXor
+    in
+    let res = match Hashtbl.find table id with
+      | IntRes _ -> (
+          match value with
+          | IntRes _ -> value
+          | FloatRes f -> IntRes (int_of_float f)
+        )
+      | FloatRes _ -> (
+          match value with
+          | IntRes i -> FloatRes (float_of_int i)
+          | FloatRes _ -> value
+        )
+    in
+    let () = Hashtbl.replace table id res in
+    Some res
   with Not_found -> failwith @@ id ^ " not declared."
 and eval_prefix (op, e) prog vars =
-  let v = eval_int_expr e prog vars in
-  let num = match op with
-    | Incrmt -> let () = eval_incr e prog vars in v + 1
-    | Decrmt -> let () = eval_decr e prog vars in v - 1
-    | Not -> bool_of_int v |> not |> int_of_bool
-    | Comp -> lnot v
+  let v = eval_type_expr e prog vars in
+  let res = match op with
+    | Incrmt ->
+      let () = eval_incr e prog vars in (
+        match v with
+        | IntRes i -> IntRes (i + 1)
+        | FloatRes f -> FloatRes (f +. 1.0)
+      )
+    | Decrmt ->
+      let () = eval_decr e prog vars in (
+        match v with
+        | IntRes i -> IntRes (i - 1)
+        | FloatRes f -> FloatRes (f -. 1.0)
+      )
+    | Not -> (
+        match v with
+        | IntRes i -> IntRes (bool_of_int i |> not |> int_of_bool)
+        | FloatRes _ -> failwith "! requires integer value."
+      )
+    | Comp -> (
+        match v with
+        | IntRes i -> IntRes (lnot i)
+        | FloatRes _ -> failwith "! requires integer value."
+      )
     | Pos -> v
-    | Neg -> -v
+    | Neg -> (
+        match v with
+        | IntRes i -> IntRes (-i)
+        | FloatRes f -> FloatRes (-.f)
+      )
   in
-  Some num
+  Some res
 and eval_postfix (e, op) prog vars =
-  let v = eval_int_expr e prog vars in
-  let () = match op with
-    | Incrmt -> eval_incr e prog vars
-    | Decrmt -> eval_decr e prog vars
+  let v = eval_type_expr e prog vars in
+  let res = match op with
+    | Incrmt -> let () = eval_incr e prog vars in v
+    | Decrmt -> let () = eval_decr e prog vars in v
     | _ -> failwith "Invalid postfix operator."
   in
-  Some v
+  Some res
 and eval_incr e prog vars = match e with
   | Var v as var ->
-    let next = eval_int_expr var prog vars + 1 in
+    let next = match eval_type_expr var prog vars with
+      | IntRes i -> IntRes (i + 1)
+      | FloatRes f -> FloatRes (f +. 1.0)
+    in
     let table = List.find (fun a -> Hashtbl.mem a v) vars in
-    Hashtbl.replace table v (Some next)
+    Hashtbl.replace table v next
   | _ -> failwith "Increment requires variable."
 and eval_decr e prog vars = match e with
   | Var v as var ->
-    let next = eval_int_expr var prog vars - 1 in
+    let next = match eval_type_expr var prog vars with
+      | IntRes i -> IntRes (i - 1)
+      | FloatRes f -> FloatRes (f -. 1.0)
+    in
     let table = List.find (fun a -> Hashtbl.mem a v) vars in
-    Hashtbl.replace table v (Some next)
+    Hashtbl.replace table v next
   | _ -> failwith "Decrement requires variable."
 
 (* Evaluates statements. *)
@@ -175,7 +306,7 @@ and eval_statements statements prog vars = match statements with
     | VoidRes -> eval_statements t prog vars
     | other -> other
 and eval_statement statement prog vars = match statement with
-  | Dec (p, decs) -> eval_dec decs prog vars
+  | Dec d -> eval_dec d prog vars
   | Expr e -> let _ = eval_expr e prog vars in VoidRes
   | Return -> RetRes None
   | ReturnExpr e -> RetRes (eval_expr e prog vars)
@@ -188,7 +319,7 @@ and eval_statement statement prog vars = match statement with
     eval_for e2 e3 s prog (new_scope vars)
   | If i -> eval_if i prog (new_scope vars)
   | IfElse i -> eval_if_else i prog (new_scope vars)
-and eval_dec decs prog vars = match decs with
+and eval_dec (prim, decs) prog vars = match decs with
   | [] -> VoidRes
   | h :: t ->
     let table = match vars with
@@ -197,17 +328,41 @@ and eval_dec decs prog vars = match decs with
     in
     let var, value = match h with
       | Var v ->
+        let () = Random.self_init () in
         if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
-        else v, None
-      | Assign (v, Asgmt, decs) ->
+        else v, (
+            match prim with
+            | Int | Char -> IntRes (Random.int max_int)
+            | Float -> FloatRes (Random.float max_float)
+            | Void -> failwith "Cannot declare void variables."
+          )
+      | Assign (v, Asgmt, expr) ->
         if Hashtbl.mem table v then failwith @@ v ^ " is already declared."
-        else v, Some (eval_int_expr decs prog vars)
+        else v, (
+            let res = eval_type_expr expr prog vars in
+            match prim with
+            | Int | Char -> (
+                match res with
+                | IntRes _ -> res
+                | FloatRes f -> IntRes (int_of_float f)
+              )
+            | Float -> (
+                match res with
+                | IntRes i -> FloatRes (float_of_int i)
+                | FloatRes _ -> res
+              )
+            | Void -> failwith "Cannot declare void variables."
+          )
       | _ -> failwith "Invalid declaration expression."
     in
     let () = Hashtbl.add table var value in
-    eval_dec t prog vars
+    eval_dec (prim, t) prog vars
 and eval_while (cond, statement) prog vars =
-  if eval_int_expr cond prog vars != 0 then
+  let res = match eval_type_expr cond prog vars with
+    | IntRes i -> i
+    | FloatRes _ -> failwith "While condition cannot be float value."
+  in
+  if res != 0 then
     match eval_statement statement prog vars with
     | VoidRes -> eval_while (cond, statement) prog vars
     | ContRes -> eval_while (cond, statement) prog vars
@@ -216,7 +371,11 @@ and eval_while (cond, statement) prog vars =
   else
     VoidRes
 and eval_for cond inc statement prog vars =
-  if eval_int_expr cond prog vars != 0 then
+  let res = match eval_type_expr cond prog vars with
+    | IntRes i -> i
+    | FloatRes _ -> failwith "For condition cannot be float value."
+  in
+  if res != 0 then
     match eval_statement statement prog vars  with
     | VoidRes ->
       let _ = eval_expr inc prog vars in
@@ -229,30 +388,43 @@ and eval_for cond inc statement prog vars =
   else
     VoidRes
 and eval_if (cond, statement) prog vars =
-  if eval_int_expr cond prog vars != 0 then
+  let res = match eval_type_expr cond prog vars with
+    | IntRes i -> i
+    | FloatRes _ -> failwith "If condition cannot be float value."
+  in
+  if res != 0 then
     eval_statement statement prog vars
   else
     VoidRes
 and eval_if_else (cond, s1, s2) prog vars =
-  let block = if eval_int_expr cond prog vars != 0 then s1 else s2 in
+  let res = match eval_type_expr cond prog vars with
+    | IntRes i -> i
+    | FloatRes _ -> failwith "If condition cannot be float value."
+  in
+  let block = if res != 0 then s1 else s2 in
   eval_statement block prog vars
 
-(* Process global variables *)
+(* Evaluate global variable declarations *)
 let rec global_scope prog elmts vars = match elmts with
   | [] -> ()
   | h :: t -> match h with
-    | Global (p, decs) as g ->
-      let global_prog = prog_scope g prog in
-      let _ = eval_dec decs global_prog vars in
+    | Global g ->
+      let global_prog = prog_scope h prog in
+      let _ = eval_dec g global_prog vars in
       global_scope prog t vars
     | _ -> global_scope prog t vars
 
-let eval_main prog =
+(* Process globals variables and evaluate main() *)
+let eval prog =
   let vars = [Hashtbl.create hash_size] in
   let () = global_scope prog prog vars in
   match eval_function_call ("main", []) prog vars with
-  | Some i -> i
+  | Some r -> (
+      match r with
+      | IntRes i -> i
+      | FloatRes f -> int_of_float f
+    )
   | _ -> 0
 
 (* Evaluates abstract syntax tree generated by lexing and parsing input. *)
-let _ = Lexing.from_channel stdin |> Parser.prog Lexer.read |> eval_main |> exit
+let _ = Lexing.from_channel stdin |> Parser.prog Lexer.read |> eval |> exit
