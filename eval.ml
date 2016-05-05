@@ -343,7 +343,7 @@ and eval_dec (prim, decs) prog vars = match decs with
   | [] -> VoidRes
   | h :: t ->
     let table = match vars with
-      | [] -> failwith "Scope empty."
+      | [] -> failwith "Global initalized to non-compile-time constant."
       | h :: _ -> h
     in
     let var, value = match h with
@@ -429,8 +429,7 @@ let rec global_scope prog elmts vars = match elmts with
   | [] -> ()
   | h :: t -> match h with
     | Global g ->
-      let global_prog = prog_scope h prog in
-      let _ = eval_dec g global_prog vars in
+      let _ = eval_dec g [] [] in
       global_scope prog t vars
     | _ -> global_scope prog t vars
 
